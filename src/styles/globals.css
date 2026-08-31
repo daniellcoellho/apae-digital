@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * White Label design tokens.
+ * Estes valores sao os PADROES (fallback). O ThemeProvider sobrescreve
+ * estas variaveis em tempo de execucao conforme a APAE (tenant) ativa.
+ * Cores em canais RGB (sem "rgb()") para funcionar com <alpha-value> do Tailwind.
+ */
+:root {
+  --color-primary: 30 107 82; /* verde APAE */
+  --color-primary-light: 61 148 120;
+  --color-primary-dark: 20 74 57;
+  --color-primary-contrast: 255 255 255;
+
+  --color-secondary: 234 88 12; /* laranja CTA (Doe Agora) */
+  --color-secondary-light: 251 146 60;
+  --color-secondary-dark: 194 65 12;
+  --color-secondary-contrast: 255 255 255;
+
+  --color-accent: 37 99 235;
+
+  --color-surface: 255 255 255;
+  --color-surface-alt: 236 242 238;
+  --color-ink: 17 24 28;
+  --color-ink-muted: 90 100 105;
+
+  --font-heading: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --radius-base: 0.75rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface text-ink font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+
+  /* Acessibilidade: foco visivel e consistente para navegacao por teclado */
+  :focus-visible {
+    outline: 3px solid rgb(var(--color-accent));
+    outline-offset: 2px;
+  }
+
+  /* Respeita usuarios que preferem menos movimento */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+           text-sm font-semibold transition-colors focus-visible:outline-none disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-primary-contrast hover:bg-primary-dark;
+  }
+
+  /* CTA principal: gradiente laranja "Doe Agora" */
+  .btn-secondary {
+    @apply btn bg-gradient-to-r from-secondary to-secondary-dark text-secondary-contrast
+           shadow-sm hover:from-secondary-dark hover:to-secondary-dark;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-primary text-primary hover:bg-primary hover:text-primary-contrast;
+  }
+
+  /* Botao outline claro (sobre fundos escuros) */
+  .btn-ghost-light {
+    @apply btn border border-white/40 text-white hover:bg-white/10;
+  }
+
+  /* Rotulo de secao: verde, maiusculo, espacado */
+  .section-label {
+    @apply text-xs font-bold uppercase tracking-[0.15em] text-primary;
+  }
+
+  /* Titulo de secao: pesado e grande */
+  .section-title {
+    @apply mt-2 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl;
+  }
+
+  /* Card branco arredondado padrao do novo design */
+  .card {
+    @apply rounded-3xl border border-black/5 bg-surface shadow-sm;
+  }
+
+  /* Link para "pular para o conteudo" (acessibilidade) */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50
+           focus:rounded-theme focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-contrast;
+  }
+}
