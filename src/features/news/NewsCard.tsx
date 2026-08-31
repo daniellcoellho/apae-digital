@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import type { NewsArticle } from '@/types'
@@ -13,7 +13,7 @@ export function NewsCard({ article }: { article: NewsArticle }) {
 
   return (
     <article className="card group flex flex-col overflow-hidden">
-      <Link to={`/noticias/${article.slug}`} className="block aspect-video overflow-hidden bg-surface-alt">
+      <Link href={`/noticias/${article.slug}`} className="block aspect-video overflow-hidden bg-surface-alt">
         {article.coverImageUrl && (
           <img
             src={article.coverImageUrl}
@@ -33,13 +33,13 @@ export function NewsCard({ article }: { article: NewsArticle }) {
         </div>
 
         <h2 className="mt-3 text-lg font-extrabold leading-snug text-ink">
-          <Link to={`/noticias/${article.slug}`} className="hover:text-primary">
+          <Link href={`/noticias/${article.slug}`} className="hover:text-primary">
             {article.title}
           </Link>
         </h2>
         <p className="mt-2 flex-1 text-sm text-ink-muted">{article.summary}</p>
 
-        <Link to={`/noticias/${article.slug}`} className="mt-4 inline-block text-sm font-semibold text-primary">
+        <Link href={`/noticias/${article.slug}`} className="mt-4 inline-block text-sm font-semibold text-primary">
           Ler notícia →
         </Link>
       </div>

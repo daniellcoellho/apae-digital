@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export function Footer() {
@@ -17,21 +19,21 @@ export function Footer() {
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide opacity-90">Navegue</h3>
           <ul className="mt-3 space-y-2 text-sm opacity-80">
-            <li><Link to="/" className="hover:opacity-100">Início</Link></li>
-            <li><Link to="/sobre" className="hover:opacity-100">Sobre</Link></li>
-            <li><Link to="/servicos" className="hover:opacity-100">Serviços</Link></li>
-            <li><Link to="/noticias" className="hover:opacity-100">Notícias</Link></li>
-            <li><Link to="/contato" className="hover:opacity-100">Contato</Link></li>
+            <li><Link href="/" className="hover:opacity-100">Início</Link></li>
+            <li><Link href="/sobre" className="hover:opacity-100">Sobre</Link></li>
+            <li><Link href="/servicos" className="hover:opacity-100">Serviços</Link></li>
+            <li><Link href="/noticias" className="hover:opacity-100">Notícias</Link></li>
+            <li><Link href="/contato" className="hover:opacity-100">Contato</Link></li>
           </ul>
         </div>
 
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide opacity-90">Atualizações</h3>
           <ul className="mt-3 space-y-2 text-sm opacity-80">
-            <li><Link to="/eventos" className="hover:opacity-100">Eventos</Link></li>
-            <li><Link to="/transparencia" className="hover:opacity-100">Transparência</Link></li>
-            <li><Link to="/parcerias" className="hover:opacity-100">Parcerias</Link></li>
-            <li><Link to="/faq" className="hover:opacity-100">FAQ</Link></li>
+            <li><Link href="/eventos" className="hover:opacity-100">Eventos</Link></li>
+            <li><Link href="/transparencia" className="hover:opacity-100">Transparência</Link></li>
+            <li><Link href="/parcerias" className="hover:opacity-100">Parcerias</Link></li>
+            <li><Link href="/faq" className="hover:opacity-100">FAQ</Link></li>
           </ul>
         </div>
 
@@ -41,7 +43,7 @@ export function Footer() {
             <li>{theme.contact.email}</li>
             <li>{theme.contact.phone}</li>
           </ul>
-          <Link to={theme.donationUrl ?? '/doacoes'} className="btn-secondary mt-4">
+          <Link href={theme.donationUrl ?? '/doacoes'} className="btn-secondary mt-4">
             ♥ Doe agora
           </Link>
         </div>

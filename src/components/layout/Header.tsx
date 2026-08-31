@@ -1,9 +1,12 @@
+'use client'
+
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const navItems = [
-  { to: '/', label: 'Início', end: true },
+  { to: '/', label: 'Início', exact: true },
   { to: '/sobre', label: 'Sobre' },
   { to: '/servicos', label: 'Serviços' },
   { to: '/eventos', label: 'Eventos' },
@@ -14,15 +17,19 @@ const navItems = [
 
 export function Header() {
   const { theme } = useTheme()
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
   const donationUrl = theme.donationUrl ?? '/doacoes'
+
+  const isActive = (to: string, exact?: boolean) =>
+    exact ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-surface/95 backdrop-blur">
       <div className="container-page flex h-20 items-center justify-between gap-4">
         {/* Logo / Marca */}
-        <Link to="/" className="flex items-center gap-3" aria-label={`${theme.name} - página inicial`}>
+        <Link href="/" className="flex items-center gap-3" aria-label={`${theme.name} - página inicial`}>
           <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-primary">
             <img
               src={theme.logoUrl}
@@ -44,18 +51,15 @@ export function Header() {
           <ul className="flex items-center gap-1">
             {navItems.map((item) => (
               <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    [
-                      'rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
-                      isActive ? 'text-primary' : 'text-ink-muted hover:text-primary',
-                    ].join(' ')
-                  }
+                <Link
+                  href={item.to}
+                  className={[
+                    'rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+                    isActive(item.to, item.exact) ? 'text-primary' : 'text-ink-muted hover:text-primary',
+                  ].join(' ')}
                 >
                   {item.label}
-                </NavLink>
+                </Link>
               </li>
             ))}
           </ul>
@@ -63,7 +67,7 @@ export function Header() {
 
         {/* CTA + menu mobile */}
         <div className="flex items-center gap-2">
-          <Link to={donationUrl} className="btn-secondary hidden sm:inline-flex">
+          <Link href={donationUrl} className="btn-secondary hidden sm:inline-flex">
             ♥ Doe agora
           </Link>
 
@@ -86,23 +90,20 @@ export function Header() {
           <ul className="container-page flex flex-col py-3">
             {navItems.map((item) => (
               <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.end}
+                <Link
+                  href={item.to}
                   onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    [
-                      'block rounded-theme px-3 py-2.5 text-sm font-medium',
-                      isActive ? 'bg-primary/10 text-primary' : 'text-ink',
-                    ].join(' ')
-                  }
+                  className={[
+                    'block rounded-theme px-3 py-2.5 text-sm font-medium',
+                    isActive(item.to, item.exact) ? 'bg-primary/10 text-primary' : 'text-ink',
+                  ].join(' ')}
                 >
                   {item.label}
-                </NavLink>
+                </Link>
               </li>
             ))}
             <li className="mt-2">
-              <Link to={donationUrl} className="btn-secondary w-full" onClick={() => setOpen(false)}>
+              <Link href={donationUrl} className="btn-secondary w-full" onClick={() => setOpen(false)}>
                 ♥ Doe agora
               </Link>
             </li>

@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { newsService } from '@/services/newsService'
 import type { NewsArticle } from '@/types'

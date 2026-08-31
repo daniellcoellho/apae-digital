@@ -5,7 +5,7 @@ import axios, {
 } from 'axios'
 import { tokenStorage } from './tokenStorage'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api'
 
 /**
  * Instancia HTTP central da aplicacao.

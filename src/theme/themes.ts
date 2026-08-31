@@ -83,7 +83,7 @@ export const themes: Record<string, BrandTheme> = {
 }
 
 export const DEFAULT_TENANT =
-  import.meta.env.VITE_DEFAULT_TENANT || 'apiuna'
+  process.env.NEXT_PUBLIC_DEFAULT_TENANT || 'apiuna'
 
 /**
  * Resolve o tenant a partir do dominio.

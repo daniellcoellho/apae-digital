@@ -1,3 +1,6 @@
+'use client'
+'use client'
+
 import { useEffect, useState } from 'react'
 
 /**
@@ -6,12 +9,15 @@ import { useEffect, useState } from 'react'
  * Aplica as mudancas via atributos/classes no <html>, sem quebrar o tema.
  */
 export function AccessibilityBar() {
-  const [fontScale, setFontScale] = useState<number>(() =>
-    Number(localStorage.getItem('a11y.fontScale') || 1),
-  )
-  const [highContrast, setHighContrast] = useState<boolean>(
-    () => localStorage.getItem('a11y.highContrast') === 'true',
-  )
+  // Inicia com valores padrao (SSR-safe) e sincroniza com localStorage apos montar.
+  const [fontScale, setFontScale] = useState<number>(1)
+  const [highContrast, setHighContrast] = useState<boolean>(false)
+
+  // Restaura preferencias salvas (so no cliente).
+  useEffect(() => {
+    setFontScale(Number(localStorage.getItem('a11y.fontScale') || 1))
+    setHighContrast(localStorage.getItem('a11y.highContrast') === 'true')
+  }, [])
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${16 * fontScale}px`

@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback, useState } from 'react'
 import { eventService } from '@/services/eventService'
 import type { CalendarEvent } from '@/types'

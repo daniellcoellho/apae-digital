@@ -1,3 +1,5 @@
+'use client'
+
 import {
   createContext,
   useCallback,
@@ -27,6 +29,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [tenant, setTenantSlug] = useState<string>(() => resolveTenantSlug())
   const [theme, setTheme] = useState<BrandTheme>(() => resolveTheme(resolveTenantSlug()))
   const [loading] = useState(false)
+
+  // No cliente, re-resolve o tenant/tema (usa window/localStorage) apos hidratar.
+  useEffect(() => {
+    const slug = resolveTenantSlug()
+    setTenantSlug(slug)
+    setTheme(resolveTheme(slug))
+  }, [])
 
   // Aplica as CSS variables sempre que o tema muda.
   useEffect(() => {
