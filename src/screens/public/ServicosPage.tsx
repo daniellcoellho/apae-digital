@@ -1,10 +1,13 @@
 'use client'
+'use client'
 
+import { useMemo } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
 import { BlockRenderer } from '@/features/institucional/BlockRenderer'
 import { getServicosContent } from '@/content/servicos'
+import { useSettingsVersion } from '@/hooks/useSettingsVersion'
 
 /**
  * Atendimentos Prestados (aba Servicos), dirigido por dados por tenant.
@@ -13,7 +16,9 @@ import { getServicosContent } from '@/content/servicos'
  */
 export function ServicosPage() {
   const { theme } = useTheme()
-  const content = getServicosContent(theme.tenant)
+  const settingsVersion = useSettingsVersion()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const content = useMemo(() => getServicosContent(theme.tenant), [theme.tenant, settingsVersion])
 
   if (!content) {
     return (

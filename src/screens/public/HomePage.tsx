@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
@@ -7,15 +8,10 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { CountUp } from '@/components/common/CountUp'
 import { NEWS_CATEGORIES } from '@/features/news/categories'
 import type { NewsCategory } from '@/types'
+import { getHomeContent } from '@/content/home'
+import { useSettingsVersion } from '@/hooks/useSettingsVersion'
 
-// ---- Dados fixos (mock) por enquanto; depois vem do backend ----
-
-const stats = [
-  { value: 312, suffix: '', label: 'Pessoas atendidas por ano', hint: 'Crianças, jovens e adultos' },
-  { value: 240, suffix: '', label: 'Famílias acompanhadas', hint: 'Orientação e apoio contínuo' },
-  { value: 5400, suffix: '+', label: 'Atendimentos realizados', hint: 'Terapias e avaliações em 2025' },
-  { value: 32, suffix: '', label: 'Anos de história', hint: 'Desde 1994 na comunidade' },
-]
+// ---- Dados fixos das secoes ainda nao editaveis (noticias/agenda/servicos/doacao) ----
 
 const featuredNews = {
   tag: 'CAMPANHAS',
@@ -79,6 +75,10 @@ const campaign = {
 
 export function HomePage() {
   const { theme } = useTheme()
+  const settingsVersion = useSettingsVersion()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const home = useMemo(() => getHomeContent(theme.tenant), [theme.tenant, settingsVersion])
+  const { hero, impact } = home
   const donationUrl = theme.donationUrl ?? '/doacoes'
   const progress = Math.round((campaign.raised / campaign.goal) * 100)
   const brl = (v: number) => v.toLocaleString('pt-BR')
@@ -95,22 +95,19 @@ export function HomePage() {
         <div className="container-page grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-20">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-              🌱 {theme.city}
+              🌱 {hero.badge}
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Cada conquista aqui começa com{' '}
-              <span className="text-secondary-light">alguém que apoia</span>
+              {hero.titlePrefix}{' '}
+              <span className="text-secondary-light">{hero.titleHighlight}</span>
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-primary-contrast/85">
-              A {theme.name} oferece educação, saúde e assistência social gratuitas para pessoas
-              com deficiência intelectual e múltipla — e caminha junto com suas famílias todos os dias.
-            </p>
+            <p className="mt-5 max-w-xl text-lg text-primary-contrast/85">{hero.subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={donationUrl} className="btn-secondary text-base">
-                ♥ Quero doar
+                ♥ {hero.primaryCtaLabel}
               </Link>
               <Link href="/noticias" className="btn-ghost-light text-base">
-                Ver o que está acontecendo →
+                {hero.secondaryCtaLabel} →
               </Link>
             </div>
           </div>
@@ -119,17 +116,15 @@ export function HomePage() {
           <div className="relative">
             <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-white/10 shadow-lg">
               <img
-                src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=900&q=60"
+                src={hero.imageUrl}
                 alt="Atendimento na APAE"
                 className="h-full w-full object-cover"
                 onError={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = '0')}
               />
             </div>
             <div className="absolute -bottom-6 left-6 max-w-[16rem] rounded-2xl bg-surface p-5 shadow-xl">
-              <CountUp value={312} className="text-3xl font-extrabold text-primary" />
-              <p className="mt-1 text-sm text-ink-muted">
-                pessoas atendidas neste ano com o apoio da comunidade
-              </p>
+              <CountUp value={hero.floatingValue} className="text-3xl font-extrabold text-primary" />
+              <p className="mt-1 text-sm text-ink-muted">{hero.floatingLabel}</p>
             </div>
           </div>
         </div>
@@ -138,13 +133,13 @@ export function HomePage() {
       {/* ============ NOSSO IMPACTO ============ */}
       <section className="container-page py-16 lg:py-20">
         <SectionHeading
-          label="Nosso impacto"
-          title="Números que são histórias de vida"
-          description="Atrás de cada número existe uma pessoa que passou a se comunicar, a caminhar sozinha, a estudar ou a trabalhar. E uma família que deixou de caminhar sozinha."
+          label={impact.label}
+          title={impact.title}
+          description={impact.description}
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.label} className="card p-6">
+          {impact.stats.map((s, i) => (
+            <div key={i} className="card p-6">
               <CountUp value={s.value} suffix={s.suffix} className="text-4xl font-extrabold text-primary" />
               <p className="mt-3 font-semibold text-ink">{s.label}</p>
               <p className="mt-1 text-sm text-ink-muted">{s.hint}</p>

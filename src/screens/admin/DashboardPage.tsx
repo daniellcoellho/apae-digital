@@ -10,7 +10,11 @@ export function DashboardPage() {
       <h1 className="text-2xl font-bold text-ink">Painel</h1>
       <p className="mt-1 text-ink-muted">Gerencie o conteúdo do site.</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link href="/admin/pagina-inicial" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
+          <h2 className="text-lg font-bold text-ink">🏠 Página Inicial</h2>
+          <p className="mt-1 text-sm text-ink-muted">Destaque principal e números de impacto.</p>
+        </Link>
         <Link href="/admin/noticias" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
           <h2 className="text-lg font-bold text-ink">📰 Notícias</h2>
           <p className="mt-1 text-sm text-ink-muted">Cadastrar, editar e publicar notícias.</p>
@@ -18,6 +22,14 @@ export function DashboardPage() {
         <Link href="/admin/eventos" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
           <h2 className="text-lg font-bold text-ink">📅 Eventos</h2>
           <p className="mt-1 text-sm text-ink-muted">Gerenciar a agenda de eventos.</p>
+        </Link>
+        <Link href="/admin/servicos" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
+          <h2 className="text-lg font-bold text-ink">🧩 Serviços</h2>
+          <p className="mt-1 text-sm text-ink-muted">Áreas e atendimentos prestados.</p>
+        </Link>
+        <Link href="/admin/transparencia" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
+          <h2 className="text-lg font-bold text-ink">📄 Transparência</h2>
+          <p className="mt-1 text-sm text-ink-muted">Documentos e prestação de contas.</p>
         </Link>
         <Link href="/admin/identidade-visual" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
           <h2 className="text-lg font-bold text-ink">🎨 Identidade Visual</h2>

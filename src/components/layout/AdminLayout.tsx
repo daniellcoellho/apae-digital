@@ -8,8 +8,11 @@ import { useTheme } from '@/contexts/ThemeContext'
 
 const adminNav = [
   { to: '/admin', label: 'Painel', exact: true },
+  { to: '/admin/pagina-inicial', label: 'Página Inicial' },
   { to: '/admin/noticias', label: 'Notícias' },
   { to: '/admin/eventos', label: 'Eventos' },
+  { to: '/admin/servicos', label: 'Serviços' },
+  { to: '/admin/transparencia', label: 'Transparência' },
   { to: '/admin/identidade-visual', label: 'Identidade Visual' },
   { to: '/admin/doacao', label: 'Doação' },
 ]

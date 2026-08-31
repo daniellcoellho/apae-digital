@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios'
 import { http } from './http'
 import { tokenStorage } from './tokenStorage'
 import { resolveTenantSlug } from '@/theme/themes'
@@ -7,9 +6,12 @@ import type { AuthResponse, User } from '@/types'
 /**
  * MODO MOCK (temporario, enquanto nao ha backend).
  * Permite entrar no Admin offline com credenciais de teste.
- * Quando o backend responder, o login real e usado automaticamente
- * e o mock so entra como fallback para as credenciais de teste.
+ *
+ * Enquanto MOCK_ENABLED estiver true, as credenciais de teste logam
+ * localmente sem depender de rede. Quando o backend Spring Boot existir,
+ * basta definir MOCK_ENABLED = false para usar apenas o login real.
  */
+const MOCK_ENABLED = true
 const MOCK_EMAIL = 'admin@apae.org'
 const MOCK_PASSWORD = 'admin123'
 const MOCK_TOKEN = 'mock.jwt.token'
@@ -24,31 +26,27 @@ function mockUser(): User {
   }
 }
 
-function isApiDown(err: unknown): boolean {
-  const ax = err as AxiosError
-  // Sem resposta do servidor (backend fora do ar) ou 404 do endpoint inexistente.
-  return !ax.response || ax.response.status === 404
+function mockLogin(): AuthResponse {
+  tokenStorage.setTokens(MOCK_TOKEN, MOCK_TOKEN)
+  localStorage.setItem('apae.mockAuth', 'true')
+  return { accessToken: MOCK_TOKEN, refreshToken: MOCK_TOKEN, user: mockUser() }
 }
 
 export const authService = {
   async login(email: string, password: string): Promise<AuthResponse> {
-    try {
-      const { data } = await http.post<AuthResponse>('/auth/login', { email, password })
-      tokenStorage.setTokens(data.accessToken, data.refreshToken)
-      return data
-    } catch (err) {
-      // Fallback mock: so aceita as credenciais de teste quando a API esta fora.
-      if (
-        isApiDown(err) &&
-        email.trim().toLowerCase() === MOCK_EMAIL &&
-        password === MOCK_PASSWORD
-      ) {
-        tokenStorage.setTokens(MOCK_TOKEN, MOCK_TOKEN)
-        localStorage.setItem('apae.mockAuth', 'true')
-        return { accessToken: MOCK_TOKEN, refreshToken: MOCK_TOKEN, user: mockUser() }
-      }
-      throw err
+    // Demo: as credenciais de teste logam localmente, sem chamar a API.
+    if (
+      MOCK_ENABLED &&
+      email.trim().toLowerCase() === MOCK_EMAIL &&
+      password === MOCK_PASSWORD
+    ) {
+      return mockLogin()
     }
+
+    // Login real (backend Spring Boot).
+    const { data } = await http.post<AuthResponse>('/auth/login', { email, password })
+    tokenStorage.setTokens(data.accessToken, data.refreshToken)
+    return data
   },
 
   async me(): Promise<User> {

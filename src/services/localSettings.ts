@@ -7,7 +7,12 @@
  * estas funcoes por chamadas HTTP mantendo a mesma assinatura.
  */
 
-export type SettingsDomain = 'theme' | 'donation'
+export type SettingsDomain =
+  | 'theme'
+  | 'donation'
+  | 'home'
+  | 'servicos'
+  | 'transparencia'
 
 function storageKey(tenant: string, domain: SettingsDomain): string {
   return `apae.settings.${tenant}.${domain}`
