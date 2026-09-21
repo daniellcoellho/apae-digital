@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Calendar, Clock, MapPin, X } from 'lucide-react'
 import type { CalendarEvent } from '@/types'
 import { EVENT_CATEGORIES } from './categories'
 
@@ -54,10 +55,10 @@ export function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="text-2xl leading-none text-ink-muted hover:text-ink"
+            className="text-ink-muted hover:text-ink"
             aria-label="Fechar"
           >
-            ×
+            <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
 
@@ -71,16 +72,16 @@ export function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
 
         <ul className="mt-5 space-y-2 text-sm text-ink">
           <li className="flex items-center gap-2">
-            <span aria-hidden>📅</span>
+            <Calendar className="h-4 w-4 text-ink-muted" aria-hidden />
             <span className="capitalize">{dateLabel}</span>
           </li>
           <li className="flex items-center gap-2">
-            <span aria-hidden>🕐</span>
+            <Clock className="h-4 w-4 text-ink-muted" aria-hidden />
             <span>{timeLabel}</span>
           </li>
           {event.location && (
             <li className="flex items-center gap-2">
-              <span aria-hidden>📍</span>
+              <MapPin className="h-4 w-4 text-ink-muted" aria-hidden />
               <span>{event.location}</span>
             </li>
           )}

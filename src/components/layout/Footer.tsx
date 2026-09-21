@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Heart } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export function Footer() {
@@ -43,8 +44,9 @@ export function Footer() {
             <li>{theme.contact.email}</li>
             <li>{theme.contact.phone}</li>
           </ul>
-          <Link href={theme.donationUrl ?? '/doacoes'} className="btn-secondary mt-4">
-            ♥ Doe agora
+          <Link href={theme.donationUrl ?? '/doacoes'} className="btn-secondary mt-4 inline-flex items-center gap-1.5">
+            <Heart className="h-4 w-4" aria-hidden />
+            Doe agora
           </Link>
         </div>
       </div>

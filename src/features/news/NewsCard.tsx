@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Calendar } from 'lucide-react'
 import type { NewsArticle } from '@/types'
 import { NEWS_CATEGORIES } from './categories'
 
@@ -29,7 +30,12 @@ export function NewsCard({ article }: { article: NewsArticle }) {
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cat.tag}`}>
             {cat.label}
           </span>
-          {date && <span className="text-xs text-ink-muted">📅 {date}</span>}
+          {date && (
+            <span className="inline-flex items-center gap-1 text-xs text-ink-muted">
+              <Calendar className="h-3.5 w-3.5" aria-hidden />
+              {date}
+            </span>
+          )}
         </div>
 
         <h2 className="mt-3 text-lg font-extrabold leading-snug text-ink">

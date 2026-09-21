@@ -26,7 +26,7 @@ function mockNews(): NewsArticle[] {
       slug: 'campanha-do-agasalho',
       summary: 'Com apoio de escolas e comércio local, as doações foram distribuídas para as famílias atendidas pela instituição.',
       category: 'CAMPANHAS',
-      coverImageUrl: img('1593113630400-ea4288922497'),
+      coverImageUrl: img('1649887221640-481c952df72e'),
       publishedAt: iso(2026, 8, 22),
     },
     {
@@ -46,7 +46,7 @@ function mockNews(): NewsArticle[] {
       slug: 'oficina-de-musica',
       summary: 'Projeto usa arte como caminho para autonomia e convivência, com aulas semanais gratuitas.',
       category: 'PROJETOS',
-      coverImageUrl: img('1511671782779-c97d3d27a1d4'),
+      coverImageUrl: img('1711048421235-3fcb9dcf82f7'),
       publishedAt: iso(2026, 8, 2),
     },
     {
@@ -56,7 +56,7 @@ function mockNews(): NewsArticle[] {
       slug: 'novo-espaco-de-convivencia',
       summary: 'Ambiente foi pensado para atividades em grupo e acolhimento das famílias.',
       category: 'ESTRUTURA',
-      coverImageUrl: img('1529156069898-49953e39b3ac'),
+      coverImageUrl: img('1761208663763-c4d30657c910'),
       publishedAt: iso(2026, 7, 28),
     },
     {
@@ -66,7 +66,7 @@ function mockNews(): NewsArticle[] {
       slug: 'arrecadacao-de-alimentos',
       summary: 'Voluntários organizaram a coleta e a triagem das doações para as famílias assistidas.',
       category: 'CAMPANHAS',
-      coverImageUrl: img('1615461066159-fea0960485d5'),
+      coverImageUrl: img('1755599629285-91cc09a185c7'),
       publishedAt: iso(2026, 7, 15),
     },
     {

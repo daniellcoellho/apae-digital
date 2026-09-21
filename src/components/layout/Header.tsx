@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Heart, Menu, X } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const navItems = [
@@ -67,8 +68,9 @@ export function Header() {
 
         {/* CTA + menu mobile */}
         <div className="flex items-center gap-2">
-          <Link href={donationUrl} className="btn-secondary hidden sm:inline-flex">
-            ♥ Doe agora
+          <Link href={donationUrl} className="btn-secondary hidden items-center gap-1.5 sm:inline-flex">
+            <Heart className="h-4 w-4" aria-hidden />
+            Doe agora
           </Link>
 
           <button
@@ -79,7 +81,7 @@ export function Header() {
             aria-label={open ? 'Fechar menu' : 'Abrir menu'}
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? '✕' : '☰'}
+            {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
           </button>
         </div>
       </div>
@@ -103,8 +105,9 @@ export function Header() {
               </li>
             ))}
             <li className="mt-2">
-              <Link href={donationUrl} className="btn-secondary w-full" onClick={() => setOpen(false)}>
-                ♥ Doe agora
+              <Link href={donationUrl} className="btn-secondary flex w-full items-center justify-center gap-1.5" onClick={() => setOpen(false)}>
+                <Heart className="h-4 w-4" aria-hidden />
+                Doe agora
               </Link>
             </li>
           </ul>

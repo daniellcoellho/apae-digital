@@ -14,6 +14,7 @@ import {
   startOfWeek,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Clock, MapPin } from 'lucide-react'
 import type { CalendarEvent } from '@/types'
 import { CATEGORY_ORDER, EVENT_CATEGORIES } from './categories'
 import { EventDetailsModal } from './EventDetailsModal'
@@ -236,8 +237,16 @@ export function EventCalendar({ events, onRangeChange }: EventCalendarProps) {
                         </div>
                         {e.description && <p className="mt-1 text-sm text-ink-muted">{e.description}</p>}
                         <div className="mt-2 flex flex-wrap gap-4 text-sm text-ink-muted">
-                          <span>🕐 {e.allDay ? 'Dia inteiro' : format(start, 'HH:mm')}</span>
-                          {e.location && <span>📍 {e.location}</span>}
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" aria-hidden />
+                            {e.allDay ? 'Dia inteiro' : format(start, 'HH:mm')}
+                          </span>
+                          {e.location && (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" aria-hidden />
+                              {e.location}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </button>

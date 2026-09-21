@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
 import { BlockRenderer } from '@/features/institucional/BlockRenderer'
+import { ContentIcon } from '@/components/common/Icon'
 import { getServicosContent } from '@/content/servicos'
 import { useSettingsVersion } from '@/hooks/useSettingsVersion'
 
@@ -63,7 +64,7 @@ export function ServicosPage() {
                         href={`#${s.id}`}
                         className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-surface px-3 py-1 text-sm text-primary hover:bg-primary hover:text-primary-contrast"
                       >
-                        {s.icon && <span>{s.icon}</span>}
+                        {s.icon && <ContentIcon name={s.icon} className="h-4 w-4" />}
                         {s.title}
                       </a>
                     </li>
@@ -92,8 +93,8 @@ export function ServicosPage() {
                 >
                   <header className="flex items-center gap-3">
                     {service.icon && (
-                      <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-xl">
-                        {service.icon}
+                      <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/10">
+                        <ContentIcon name={service.icon} className="h-6 w-6 text-primary" />
                       </span>
                     )}
                     <div>

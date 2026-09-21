@@ -1,4 +1,6 @@
+import { Check, User } from 'lucide-react'
 import type { ContentBlock } from '@/content/institucional/types'
+import { ContentIcon } from '@/components/common/Icon'
 
 /** Renderiza um bloco de conteudo institucional no estilo do design atual. */
 export function Block({ block }: { block: ContentBlock }) {
@@ -16,7 +18,11 @@ export function Block({ block }: { block: ContentBlock }) {
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {block.items.map((item) => (
               <li key={item} className="flex items-start gap-2 text-ink-muted">
-                <span className="mt-1 text-primary">{block.variant === 'check' ? '✓' : '•'}</span>
+                {block.variant === 'check' ? (
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                ) : (
+                  <span className="mt-1 text-primary">•</span>
+                )}
                 <span>{item}</span>
               </li>
             ))}
@@ -28,7 +34,7 @@ export function Block({ block }: { block: ContentBlock }) {
       return (
         <div className="mt-6 rounded-3xl border border-primary/15 bg-primary/5 p-6">
           <div className="flex items-center gap-2">
-            {block.icon && <span className="text-xl">{block.icon}</span>}
+            {block.icon && <ContentIcon name={block.icon} className="h-5 w-5 text-primary" />}
             <h3 className="text-lg font-extrabold text-primary">{block.title}</h3>
           </div>
           <p className="mt-2 leading-relaxed text-ink">{block.text}</p>
@@ -81,8 +87,8 @@ export function Block({ block }: { block: ContentBlock }) {
             {block.cards.map((c) => (
               <div key={c.title} className="card p-6">
                 {c.icon && (
-                  <div className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-xl">
-                    {c.icon}
+                  <div className="grid h-11 w-11 place-items-center rounded-full bg-primary/10">
+                    <ContentIcon name={c.icon} className="h-5 w-5 text-primary" />
                   </div>
                 )}
                 <h4 className="mt-4 font-extrabold text-ink">{c.title}</h4>
@@ -96,11 +102,11 @@ export function Block({ block }: { block: ContentBlock }) {
     case 'person':
       return (
         <div className="mt-6 card flex items-center gap-5 p-6">
-          <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-2xl text-primary">
+          <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-primary">
             {block.photoUrl ? (
               <img src={block.photoUrl} alt={block.name} className="h-full w-full object-cover" />
             ) : (
-              '👤'
+              <User className="h-8 w-8" aria-hidden />
             )}
           </div>
           <div>

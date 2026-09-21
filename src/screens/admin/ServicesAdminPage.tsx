@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
+import { ContentIcon, ICON_KEYS } from '@/components/common/Icon'
 import { localSettings } from '@/services/localSettings'
 import {
   getServicosContent,
@@ -118,7 +120,10 @@ export function ServicesAdminPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={resetDefault} className="btn-outline">Restaurar padrão</button>
-          <button onClick={save} className="btn-primary">{saved ? '✓ Salvo' : 'Salvar'}</button>
+          <button onClick={save} className="btn-primary inline-flex items-center gap-1.5">
+            {saved && <Check className="h-4 w-4" aria-hidden />}
+            {saved ? 'Salvo' : 'Salvar'}
+          </button>
         </div>
       </div>
 
@@ -142,7 +147,21 @@ export function ServicesAdminPage() {
                   <div className="grid gap-3 sm:grid-cols-[80px_1fr]">
                     <label className="block">
                       <span className="text-xs text-ink-muted">Ícone</span>
-                      <input value={s.icon ?? ''} onChange={(e) => updateService(ai, si, { icon: e.target.value })} placeholder="🩺" className={inputCls} />
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-theme border border-black/10 text-primary">
+                          <ContentIcon name={s.icon} className="h-5 w-5" />
+                        </span>
+                        <select
+                          value={s.icon ?? ''}
+                          onChange={(e) => updateService(ai, si, { icon: e.target.value })}
+                          className={inputCls.replace('mt-1 ', '')}
+                        >
+                          <option value="">Sem ícone</option>
+                          {ICON_KEYS.map((key) => (
+                            <option key={key} value={key}>{key}</option>
+                          ))}
+                        </select>
+                      </div>
                     </label>
                     <label className="block">
                       <span className="text-xs text-ink-muted">Título do serviço</span>
@@ -164,7 +183,7 @@ export function ServicesAdminPage() {
                   </label>
                   {s.blocks.some((b) => b.type === 'list') && (
                     <p className="mt-2 text-xs text-ink-muted">
-                      ℹ️ Este serviço possui listas que são preservadas (edição de listas em breve).
+                      Este serviço possui listas que são preservadas (edição de listas em breve).
                     </p>
                   )}
                   <button onClick={() => removeService(ai, si)} className="mt-3 text-sm text-secondary-dark hover:underline">

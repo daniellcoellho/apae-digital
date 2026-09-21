@@ -30,7 +30,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'fisioterapia',
           title: 'Fisioterapia',
-          icon: '🧘',
+          icon: 'atividade',
           summary: 'Autonomia, funcionalidade e qualidade de vida.',
           blocks: [
             {
@@ -54,7 +54,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'fonoaudiologia',
           title: 'Fonoaudiologia',
-          icon: '🗣️',
+          icon: 'fala',
           summary: 'Comunicação, linguagem e funções orais.',
           blocks: [
             {
@@ -70,7 +70,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'psicologia',
           title: 'Psicologia',
-          icon: '🧠',
+          icon: 'cerebro',
           summary: 'Avaliação, atendimento e orientação.',
           blocks: [
             {
@@ -86,7 +86,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'terapia-ocupacional',
           title: 'Terapia Ocupacional',
-          icon: '✋',
+          icon: 'mao',
           summary: 'Habilidades para as atividades da vida diária.',
           blocks: [
             {
@@ -110,7 +110,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'servico-social',
           title: 'Serviço Social',
-          icon: '🤝',
+          icon: 'parceria',
           summary: 'Orientação, direitos e rede de apoio.',
           blocks: [
             {
@@ -126,7 +126,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'setor-medico',
           title: 'Setor Médico',
-          icon: '🩺',
+          icon: 'saude',
           summary: 'Atendimento neurológico e acompanhamento.',
           blocks: [
             {
@@ -151,7 +151,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'estimulacao-precoce',
           title: 'Estimulação Precoce',
-          icon: '🍼',
+          icon: 'bebe',
           summary: '0 a 5 anos e 11 meses.',
           blocks: [
             {
@@ -167,7 +167,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'spe',
           title: 'Serviço Pedagógico Específico (SPE)',
-          icon: '📘',
+          icon: 'livro',
           summary: '6 a 17 anos — DI grave ou profunda.',
           blocks: [
             {
@@ -179,7 +179,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'spe-tea',
           title: 'Serviço Pedagógico Específico – TEA',
-          icon: '🧩',
+          icon: 'peca',
           summary: 'TEA nível 3 ou DI grave associada.',
           blocks: [
             {
@@ -191,7 +191,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'aee-di',
           title: 'AEE – Atendimento Educacional Especializado (DI)',
-          icon: '🎯',
+          icon: 'alvo',
           summary: 'Acima de 6 anos, complementar à rede regular.',
           blocks: [
             {
@@ -207,7 +207,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'tea',
           title: 'Transtorno do Espectro Autista (TEA)',
-          icon: '🫶',
+          icon: 'acolhimento',
           summary: 'TEA associado a DI severa.',
           blocks: [
             {
@@ -219,7 +219,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'sae',
           title: 'Serviço de Atendimento Específico (SAE e SAE/TEA)',
-          icon: '🤲',
+          icon: 'apoio',
           summary: 'Acima de 17 anos.',
           blocks: [
             {
@@ -231,7 +231,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'proep',
           title: 'Educação Profissional (PROEP)',
-          icon: '💼',
+          icon: 'maleta',
           summary: 'Acima de 14 anos — iniciação para o trabalho.',
           blocks: [
             {
@@ -247,7 +247,7 @@ export const apiunaServicos: ServicosContent = {
         {
           id: 'svl',
           title: 'Serviço de Vivências Laborais (SVL)',
-          icon: '🛠️',
+          icon: 'ferramenta',
           summary: 'Acima de 14 anos — capacidade laboral.',
           blocks: [
             {

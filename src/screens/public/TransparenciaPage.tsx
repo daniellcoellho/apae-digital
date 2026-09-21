@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { Download } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -43,14 +44,14 @@ export function TransparenciaPage() {
                       href={d.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 text-2xl text-primary"
+                      className="shrink-0 text-primary"
                       aria-label={`Baixar ${d.title}`}
                     >
-                      ⤓
+                      <Download className="h-5 w-5" aria-hidden />
                     </a>
                   ) : (
-                    <span className="shrink-0 text-2xl text-ink-muted/40" title="Arquivo em breve" aria-hidden>
-                      ⤓
+                    <span className="shrink-0 text-ink-muted/40" title="Arquivo em breve" aria-hidden>
+                      <Download className="h-5 w-5" />
                     </span>
                   )}
                 </article>

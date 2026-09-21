@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Check } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { localSettings } from '@/services/localSettings'
@@ -71,7 +72,10 @@ export function DonationAdminPage() {
           <h1 className="text-2xl font-bold text-ink">Doação</h1>
           <p className="mt-1 text-ink-muted">Configure a chave PIX e os dados bancários exibidos no site.</p>
         </div>
-        <button onClick={save} className="btn-primary">{saved ? '✓ Salvo' : 'Salvar'}</button>
+        <button onClick={save} className="btn-primary inline-flex items-center gap-1.5">
+          {saved && <Check className="h-4 w-4" aria-hidden />}
+          {saved ? 'Salvo' : 'Salvar'}
+        </button>
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_300px]">

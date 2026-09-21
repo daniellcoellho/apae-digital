@@ -1,7 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { Calendar, FileText, Heart, Home, Newspaper, Palette, Puzzle } from 'lucide-react'
 import { PageMeta } from '@/components/common/PageMeta'
+
+const panels = [
+  { href: '/admin/pagina-inicial', icon: Home, title: 'Página Inicial', desc: 'Destaque principal e números de impacto.' },
+  { href: '/admin/noticias', icon: Newspaper, title: 'Notícias', desc: 'Cadastrar, editar e publicar notícias.' },
+  { href: '/admin/eventos', icon: Calendar, title: 'Eventos', desc: 'Gerenciar a agenda de eventos.' },
+  { href: '/admin/servicos', icon: Puzzle, title: 'Serviços', desc: 'Áreas e atendimentos prestados.' },
+  { href: '/admin/transparencia', icon: FileText, title: 'Transparência', desc: 'Documentos e prestação de contas.' },
+  { href: '/admin/identidade-visual', icon: Palette, title: 'Identidade Visual', desc: 'Cores, logo e tipografia da sua APAE.' },
+  { href: '/admin/doacao', icon: Heart, title: 'Doação', desc: 'Chave PIX e dados bancários.' },
+]
 
 export function DashboardPage() {
   return (
@@ -11,34 +22,17 @@ export function DashboardPage() {
       <p className="mt-1 text-ink-muted">Gerencie o conteúdo do site.</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link href="/admin/pagina-inicial" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">🏠 Página Inicial</h2>
-          <p className="mt-1 text-sm text-ink-muted">Destaque principal e números de impacto.</p>
-        </Link>
-        <Link href="/admin/noticias" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">📰 Notícias</h2>
-          <p className="mt-1 text-sm text-ink-muted">Cadastrar, editar e publicar notícias.</p>
-        </Link>
-        <Link href="/admin/eventos" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">📅 Eventos</h2>
-          <p className="mt-1 text-sm text-ink-muted">Gerenciar a agenda de eventos.</p>
-        </Link>
-        <Link href="/admin/servicos" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">🧩 Serviços</h2>
-          <p className="mt-1 text-sm text-ink-muted">Áreas e atendimentos prestados.</p>
-        </Link>
-        <Link href="/admin/transparencia" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">📄 Transparência</h2>
-          <p className="mt-1 text-sm text-ink-muted">Documentos e prestação de contas.</p>
-        </Link>
-        <Link href="/admin/identidade-visual" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">🎨 Identidade Visual</h2>
-          <p className="mt-1 text-sm text-ink-muted">Cores, logo e tipografia da sua APAE.</p>
-        </Link>
-        <Link href="/admin/doacao" className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md">
-          <h2 className="text-lg font-bold text-ink">💛 Doação</h2>
-          <p className="mt-1 text-sm text-ink-muted">Chave PIX e dados bancários.</p>
-        </Link>
+        {panels.map((p) => (
+          <Link
+            key={p.href}
+            href={p.href}
+            className="rounded-theme border border-black/5 bg-surface p-6 shadow-sm hover:shadow-md"
+          >
+            <p.icon className="h-5 w-5 text-primary" aria-hidden />
+            <h2 className="mt-2 text-lg font-bold text-ink">{p.title}</h2>
+            <p className="mt-1 text-sm text-ink-muted">{p.desc}</p>
+          </Link>
+        ))}
       </div>
     </>
   )

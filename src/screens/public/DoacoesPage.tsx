@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Check, Lightbulb } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -25,9 +26,10 @@ function CopyButton({ text, label = 'Copiar' }: { text: string; label?: string }
           /* ignore */
         }
       }}
-      className="shrink-0 rounded-full border border-primary/30 px-4 py-1.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-contrast"
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/30 px-4 py-1.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-contrast"
     >
-      {copied ? '✓ Copiado' : label}
+      {copied && <Check className="h-4 w-4" aria-hidden />}
+      {copied ? 'Copiado' : label}
     </button>
   )
 }
@@ -99,8 +101,9 @@ export function DoacoesPage() {
               </div>
             </div>
 
-            <p className="mt-6 rounded-xl bg-primary/5 px-4 py-3 text-sm text-ink-muted">
-              💡 Abra o app do seu banco, escolha pagar com PIX, escaneie o QR Code (ou cole o código)
+            <p className="mt-6 flex items-start gap-2 rounded-xl bg-primary/5 px-4 py-3 text-sm text-ink-muted">
+              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              Abra o app do seu banco, escolha pagar com PIX, escaneie o QR Code (ou cole o código)
               e informe o valor que quiser doar.
             </p>
           </div>

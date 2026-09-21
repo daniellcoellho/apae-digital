@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check, Heart } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { localSettings } from '@/services/localSettings'
@@ -66,7 +67,10 @@ export function BrandingPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={resetToDefault} className="btn-outline">Restaurar padrão</button>
-          <button onClick={apply} className="btn-primary">{saved ? '✓ Aplicado' : 'Aplicar e salvar'}</button>
+          <button onClick={apply} className="btn-primary inline-flex items-center gap-1.5">
+            {saved && <Check className="h-4 w-4" aria-hidden />}
+            {saved ? 'Aplicado' : 'Aplicar e salvar'}
+          </button>
         </div>
       </div>
 
@@ -154,7 +158,10 @@ export function BrandingPage() {
             <div className="bg-gradient-to-br from-primary-dark to-primary p-5 text-primary-contrast">
               <p className="text-xs opacity-80">{city}</p>
               <p className="mt-1 text-lg font-extrabold leading-tight">Inclusão que transforma vidas</p>
-              <span className="btn-secondary mt-3 text-xs">♥ Doe agora</span>
+              <span className="btn-secondary mt-3 inline-flex items-center gap-1 text-xs">
+                <Heart className="h-3.5 w-3.5" aria-hidden />
+                Doe agora
+              </span>
             </div>
             {/* mini card */}
             <div className="bg-surface-alt p-4">

@@ -30,7 +30,7 @@ export const apiunaInstitucional: InstitutionalPage[] = [
       },
       {
         type: 'highlight',
-        icon: '🎯',
+        icon: 'alvo',
         title: 'Objetivo',
         text: 'Proporcionar o atendimento à pessoa com Deficiência Intelectual e Múltipla, promovendo seu desenvolvimento físico, social, psíquico, intelectual e profissional, facilitando sua inclusão.',
       },
@@ -48,13 +48,13 @@ export const apiunaInstitucional: InstitutionalPage[] = [
       },
       {
         type: 'highlight',
-        icon: '💚',
+        icon: 'acolhimento',
         title: 'Missão',
         text: 'Promover a inclusão e a melhoria da qualidade de vida de todas as pessoas.',
       },
       {
         type: 'highlight',
-        icon: '👁️',
+        icon: 'olho',
         title: 'Visão',
         text: 'Ser reconhecida pela excelência no atendimento, inclusão e promoção da qualidade de vida de todas as pessoas.',
       },
@@ -93,7 +93,7 @@ export const apiunaInstitucional: InstitutionalPage[] = [
       },
       {
         type: 'highlight',
-        icon: '🎯',
+        icon: 'alvo',
         title: 'Objetivo',
         text: 'Proporcionar o atendimento à pessoa com Deficiência Intelectual e Múltipla, promovendo seu desenvolvimento físico, social, psíquico, intelectual e profissional, facilitando sua inclusão.',
       },
@@ -173,12 +173,12 @@ export const apiunaInstitucional: InstitutionalPage[] = [
         type: 'cards',
         title: 'Programas por faixa etária',
         cards: [
-          { icon: '🍼', title: 'Estimulação Precoce', description: '0 ano a 5 anos e 11 meses.' },
-          { icon: '📘', title: 'Serviço Pedagógico Específico (SPE)', description: '6 anos a 17 anos e 11 meses.' },
-          { icon: '🧠', title: 'Atendimento Educacional Especializado (AEE)', description: '6 anos a 17 anos e 11 meses.' },
-          { icon: '🤝', title: 'Serviço de Atendimento Especializado (SAE)', description: 'Acima de 18 anos.' },
-          { icon: '🛠️', title: 'Serviço de Vivências Laborais', description: 'Acima de 14 anos.' },
-          { icon: '💼', title: 'PROEP – Iniciação para o Trabalho', description: 'Acima de 17 anos.' },
+          { icon: 'bebe', title: 'Estimulação Precoce', description: '0 ano a 5 anos e 11 meses.' },
+          { icon: 'livro', title: 'Serviço Pedagógico Específico (SPE)', description: '6 anos a 17 anos e 11 meses.' },
+          { icon: 'cerebro', title: 'Atendimento Educacional Especializado (AEE)', description: '6 anos a 17 anos e 11 meses.' },
+          { icon: 'parceria', title: 'Serviço de Atendimento Especializado (SAE)', description: 'Acima de 18 anos.' },
+          { icon: 'ferramenta', title: 'Serviço de Vivências Laborais', description: 'Acima de 14 anos.' },
+          { icon: 'maleta', title: 'PROEP – Iniciação para o Trabalho', description: 'Acima de 17 anos.' },
         ],
       },
       {
@@ -227,7 +227,7 @@ export const apiunaInstitucional: InstitutionalPage[] = [
       },
       {
         type: 'highlight',
-        icon: '🎯',
+        icon: 'alvo',
         title: 'Objetivo do AEE',
         text: 'Qualificar as funções psicológicas superiores do educando para a autorregulação de sua estrutura cognitiva e construção de conceitos, mediante intervenções pedagógicas que possibilitem avanços no seu processo de aprendizagem.',
       },
@@ -297,10 +297,10 @@ export const apiunaInstitucional: InstitutionalPage[] = [
         type: 'cards',
         title: 'Áreas de atendimento',
         cards: [
-          { icon: '🩺', title: 'Saúde', description: 'Medicina, enfermagem, fisioterapia, fonoaudiologia, nutrição, terapia ocupacional e odontologia.' },
-          { icon: '🧑\u200d🏫', title: 'Educação', description: 'Artes, Educação Física e Informática, além do atendimento pedagógico especializado.' },
-          { icon: '🤝', title: 'Serviço Social', description: 'Acolhimento das famílias, orientação e garantia de direitos.' },
-          { icon: '🧩', title: 'Psicologia', description: 'Acompanhamento e apoio ao desenvolvimento do educando.' },
+          { icon: 'saude', title: 'Saúde', description: 'Medicina, enfermagem, fisioterapia, fonoaudiologia, nutrição, terapia ocupacional e odontologia.' },
+          { icon: 'formatura', title: 'Educação', description: 'Artes, Educação Física e Informática, além do atendimento pedagógico especializado.' },
+          { icon: 'parceria', title: 'Serviço Social', description: 'Acolhimento das famílias, orientação e garantia de direitos.' },
+          { icon: 'peca', title: 'Psicologia', description: 'Acompanhamento e apoio ao desenvolvimento do educando.' },
         ],
       },
       {

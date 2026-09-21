@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { localSettings } from '@/services/localSettings'
@@ -54,7 +55,10 @@ export function HomeAdminPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={resetDefault} className="btn-outline">Restaurar padrão</button>
-          <button onClick={save} className="btn-primary">{saved ? '✓ Salvo' : 'Salvar'}</button>
+          <button onClick={save} className="btn-primary inline-flex items-center gap-1.5">
+            {saved && <Check className="h-4 w-4" aria-hidden />}
+            {saved ? 'Salvo' : 'Salvar'}
+          </button>
         </div>
       </div>
 

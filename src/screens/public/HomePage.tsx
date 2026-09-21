@@ -2,6 +2,20 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
+import {
+  Briefcase,
+  Bus,
+  Calendar,
+  Clock,
+  GraduationCap,
+  HandHeart,
+  Heart,
+  MapPin,
+  Puzzle,
+  Sprout,
+  Stethoscope,
+  Users,
+} from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { SectionHeading } from '@/components/common/SectionHeading'
@@ -21,7 +35,7 @@ const featuredNews = {
     'Com apoio de escolas e comércio local, as doações foram distribuídas para as famílias atendidas pela instituição.',
   slug: 'campanha-do-agasalho',
   image:
-    'https://images.unsplash.com/photo-1593113630400-ea4288922497?auto=format&fit=crop&w=800&q=60',
+    'https://images.unsplash.com/photo-1649887221640-481c952df72e?auto=format&fit=crop&w=800&q=60',
 }
 
 const sideNews = [
@@ -41,7 +55,7 @@ const sideNews = [
     summary: 'Projeto usa arte como caminho para autonomia e convivência.',
     slug: 'oficina-de-musica',
     image:
-      'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=60',
+      'https://images.unsplash.com/photo-1711048421235-3fcb9dcf82f7?auto=format&fit=crop&w=400&q=60',
   },
 ]
 
@@ -53,16 +67,16 @@ const upcomingEvents = [
 ]
 
 const services = [
-  { icon: '🎓', title: 'Atendimento educacional', desc: 'Escola especial e apoio pedagógico individualizado.' },
-  { icon: '🩺', title: 'Saúde e reabilitação', desc: 'Fisioterapia, fonoaudiologia, psicologia e terapia ocupacional.' },
-  { icon: '👥', title: 'Assistência social', desc: 'Acolhimento das famílias e garantia de direitos.' },
-  { icon: '💼', title: 'Inclusão produtiva', desc: 'Oficinas de trabalho, formação e geração de renda.' },
+  { icon: GraduationCap, title: 'Atendimento educacional', desc: 'Escola especial e apoio pedagógico individualizado.' },
+  { icon: Stethoscope, title: 'Saúde e reabilitação', desc: 'Fisioterapia, fonoaudiologia, psicologia e terapia ocupacional.' },
+  { icon: Users, title: 'Assistência social', desc: 'Acolhimento das famílias e garantia de direitos.' },
+  { icon: Briefcase, title: 'Inclusão produtiva', desc: 'Oficinas de trabalho, formação e geração de renda.' },
 ]
 
 const donationTiers = [
-  { icon: '🧩', value: 'R$ 30/mês', desc: 'Materiais para uma oficina terapêutica' },
-  { icon: '🚐', value: 'R$ 100/mês', desc: 'Transporte de um aluno por um mês' },
-  { icon: '💚', value: 'R$ 250/mês', desc: 'Uma sessão semanal de fisioterapia' },
+  { icon: Puzzle, value: 'R$ 30/mês', desc: 'Materiais para uma oficina terapêutica' },
+  { icon: Bus, value: 'R$ 100/mês', desc: 'Transporte de um aluno por um mês' },
+  { icon: HandHeart, value: 'R$ 250/mês', desc: 'Uma sessão semanal de fisioterapia' },
 ]
 
 const campaign = {
@@ -95,7 +109,8 @@ export function HomePage() {
         <div className="container-page grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-20">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-              🌱 {hero.badge}
+              <Sprout className="h-3.5 w-3.5" aria-hidden />
+              {hero.badge}
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
               {hero.titlePrefix}{' '}
@@ -103,8 +118,9 @@ export function HomePage() {
             </h1>
             <p className="mt-5 max-w-xl text-lg text-primary-contrast/85">{hero.subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={donationUrl} className="btn-secondary text-base">
-                ♥ {hero.primaryCtaLabel}
+              <Link href={donationUrl} className="btn-secondary inline-flex items-center gap-1.5 text-base">
+                <Heart className="h-4 w-4" aria-hidden />
+                {hero.primaryCtaLabel}
               </Link>
               <Link href="/noticias" className="btn-ghost-light text-base">
                 {hero.secondaryCtaLabel} →
@@ -171,7 +187,10 @@ export function HomePage() {
                   <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${NEWS_CATEGORIES[featuredNews.tag as NewsCategory].tag}`}>
                     {NEWS_CATEGORIES[featuredNews.tag as NewsCategory].label}
                   </span>
-                  <span className="text-sm text-ink-muted">📅 {featuredNews.date}</span>
+                  <span className="inline-flex items-center gap-1 text-sm text-ink-muted">
+                    <Calendar className="h-3.5 w-3.5" aria-hidden />
+                    {featuredNews.date}
+                  </span>
                 </div>
                 <h3 className="mt-4 text-2xl font-extrabold text-ink">{featuredNews.title}</h3>
                 <p className="mt-2 text-ink-muted">{featuredNews.summary}</p>
@@ -235,8 +254,14 @@ export function HomePage() {
               <h3 className="mt-4 font-extrabold leading-snug text-ink">{e.title}</h3>
               <p className="mt-2 text-sm text-ink-muted">{e.desc}</p>
               <ul className="mt-4 space-y-1 text-sm text-ink-muted">
-                <li>🕐 {e.time}</li>
-                <li>📍 {e.place}</li>
+                <li className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" aria-hidden />
+                  {e.time}
+                </li>
+                <li className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" aria-hidden />
+                  {e.place}
+                </li>
               </ul>
             </article>
           ))}
@@ -250,8 +275,8 @@ export function HomePage() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {services.map((s) => (
               <div key={s.title} className="card p-6">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-xl">
-                  {s.icon}
+                <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+                  <s.icon className="h-6 w-6" aria-hidden />
                 </div>
                 <h3 className="mt-4 font-extrabold text-ink">{s.title}</h3>
                 <p className="mt-2 text-sm text-ink-muted">{s.desc}</p>
@@ -277,7 +302,7 @@ export function HomePage() {
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {donationTiers.map((t) => (
                 <div key={t.value} className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-                  <div className="text-xl">{t.icon}</div>
+                  <t.icon className="h-5 w-5" aria-hidden />
                   <p className="mt-2 font-extrabold">{t.value}</p>
                   <p className="mt-1 text-sm text-primary-contrast/80">{t.desc}</p>
                 </div>
@@ -299,7 +324,10 @@ export function HomePage() {
             </div>
             <p className="mt-2 text-sm text-ink-muted">{progress}% arrecadado com {campaign.donors} doadores</p>
 
-            <Link href={donationUrl} className="btn-secondary mt-6 w-full text-base">♥ Doar via PIX</Link>
+            <Link href={donationUrl} className="btn-secondary mt-6 flex w-full items-center justify-center gap-1.5 text-base">
+              <Heart className="h-4 w-4" aria-hidden />
+              Doar via PIX
+            </Link>
             <p className="mt-3 text-center text-sm text-ink-muted">
               Doe o valor que desejar por PIX ou transferência.
             </p>
