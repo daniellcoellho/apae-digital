@@ -1,262 +1,219 @@
 # APAE Digital — Backend (API)
 
-API REST **White Label** para APAEs, em **Java 21 + Spring Boot 3**, com **JPA/Hibernate**,
-**PostgreSQL**, autenticação **JWT** e **multi-tenancy** (dados escopados por APAE).
+API REST em **Java 21 + Spring Boot 3**, com **JPA/Hibernate**, **PostgreSQL**,
+autenticação **JWT** e **multi-tenancy** (dados isolados por APAE).
 
-Alinhada 1:1 aos endpoints que o frontend (Next.js) já consome.
+Faz parte do projeto **APAE Digital** (ver [README raiz](../README.md) para a visão geral
+front + back). Os endpoints são alinhados ao que o frontend Next.js consome.
+
+## Índice
+
+- [Início rápido](#início-rápido)
+- [O que já está implementado](#o-que-já-está-implementado)
+- [Configuração](#configuração)
+- [Autenticação e multi-tenancy](#autenticação-e-multi-tenancy)
+- [Referência de rotas](#referência-de-rotas)
+- [Testes e cobertura](#testes-e-cobertura)
+- [Estrutura de pastas](#estrutura-de-pastas)
 
 ---
 
-## Stack
+## Início rápido
 
-- **Java 21** + **Spring Boot 3.4**
-- **Spring Web**, **Spring Data JPA (Hibernate)**, **Spring Security**, **Bean Validation**
-- **PostgreSQL** + **Flyway** (migrations)
-- **JWT** via [jjwt](https://github.com/jwtk/jjwt)
-- **Testes:** JUnit 5, Mockito, Spring Security Test, H2 (em memória)
-- **Cobertura:** JaCoCo (mínimo de 80% de linhas, verificado no build)
+> Este projeto exige **Java 21**. Se sua máquina tem outra versão (ex.: Java 8),
+> use o fluxo Docker — o Java 21 fica no container e nada muda no seu ambiente.
 
----
-
-## Como rodar
-
-> **Importante:** este projeto exige **Java 21**. Se sua máquina tem outra versão de
-> Java (ex.: Java 8), use o fluxo **via Docker** — o Java 21 fica dentro do container e
-> nada muda no seu ambiente.
-
-### Opção A — Tudo no Docker (recomendado, não precisa de Java local)
+**Subir tudo (banco + API) com Docker:**
 
 ```bash
 cd backend
 docker compose up --build
 ```
 
-Sobe **PostgreSQL** + **API**. A API fica em **http://localhost:8080**.
-Ao subir pela primeira vez, cria o tenant e o usuário admin de seed (ver abaixo).
+A API sobe em **http://localhost:8080**. No primeiro start, cria o tenant e o admin
+de seed (`admin@apae.org` / `admin123`).
 
-### Opção B — Postgres no Docker, API local (mais ágil p/ desenvolver)
-
-Requer **JDK 21** instalado localmente.
+**Testar rápido:**
 
 ```bash
-cd backend
-docker compose -f docker-compose.db.yml up -d     # sobe só o Postgres
-./mvnw spring-boot:run                             # roda a API local (perfil default)
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@apae.org","password":"admin123"}'
 ```
 
-### Build e testes (com relatório de cobertura)
+Ou importe a collection [`postman/APAE-Digital.postman_collection.json`](postman/APAE-Digital.postman_collection.json)
+no Postman — a request **Login** já salva o token e as rotas admin ficam autenticadas.
 
-Local (com JDK 21):
-```bash
-./mvnw verify
-```
+**Outros modos de rodar:**
 
-Sem Java local — rodando no Docker:
-```bash
-docker run --rm -v "${PWD}:/app" -v "apae-m2:/root/.m2" -w /app \
-  maven:3.9-eclipse-temurin-21 mvn -B verify
-```
-
-O relatório de cobertura fica em `target/site/jacoco/index.html`.
-O build **falha** se a cobertura de linhas cair abaixo de 80%.
+| Objetivo | Comando |
+|---|---|
+| Só o Postgres (e rodar a API por conta) | `docker compose -f docker-compose.db.yml up -d` |
+| API local (precisa de JDK 21) | `./mvnw spring-boot:run` |
+| Build + testes local (JDK 21) | `./mvnw verify` |
+| Build + testes sem Java local (Docker) | `docker run --rm -v "${PWD}:/app" -v "apae-m2:/root/.m2" -w /app maven:3.9-eclipse-temurin-21 mvn -B verify` |
 
 ---
 
-## Configuração (variáveis de ambiente)
+## O que já está implementado
+
+Este backend cobre **parte** do produto. O frontend já tem telas de administração para
+vários módulos White Label, mas por enquanto só **Notícias** e **Eventos** têm API — os
+demais ainda são salvos localmente no navegador (localStorage) no front.
+
+| Módulo | API no backend | Observação |
+|---|---|---|
+| Autenticação (JWT) | ✅ | login / refresh / me |
+| Notícias | ✅ | CRUD admin + rotas públicas |
+| Eventos | ✅ | CRUD admin + consulta por período |
+| Identidade visual (tema) | ⛔ roadmap | cores, logo, tipografia por tenant |
+| Página inicial (hero + números) | ⛔ roadmap | — |
+| Serviços / Atendimentos | ⛔ roadmap | áreas e serviços (blocos) |
+| Transparência | ⛔ roadmap | documentos |
+| Doação | ⛔ roadmap | chave PIX, contas |
+| Institucional (Sobre) | ⛔ roadmap | subpáginas de blocos |
+
+O padrão (entidade → repositório → service → controller → DTO → testes) já está
+estabelecido; adicionar os módulos do roadmap é repetir essa estrutura por tenant.
+
+---
+
+## Configuração
+
+Variáveis de ambiente (todas têm padrão para desenvolvimento):
 
 | Variável | Padrão | Descrição |
 |---|---|---|
 | `DB_URL` | `jdbc:postgresql://localhost:5432/apae` | URL do banco (perfil default) |
 | `DB_USER` / `DB_PASSWORD` | `apae` / `apae` | Credenciais do banco |
 | `SERVER_PORT` | `8080` | Porta da API |
-| `APP_JWT_SECRET` | (dev) | Segredo do JWT (**defina em produção**, >= 32 bytes) |
+| `APP_JWT_SECRET` | (dev) | Segredo do JWT — **obrigatório em produção** (>= 32 bytes) |
 | `APP_JWT_ACCESS_TTL` | `60` | Validade do access token (minutos) |
 | `APP_JWT_REFRESH_TTL` | `7` | Validade do refresh token (dias) |
-| `APP_CORS_ORIGINS` | `http://localhost:3000` | Origens permitidas (CSV) |
+| `APP_CORS_ORIGINS` | `http://localhost:3000` | Origens permitidas (separadas por vírgula) |
 | `APP_SEED_ENABLED` | `true` | Cria tenant/admin inicial no primeiro start |
 | `APP_SEED_TENANT` | `apiuna` | Slug do tenant inicial |
-| `APP_SEED_ADMIN_EMAIL` | `admin@apae.org` | E-mail do admin inicial |
-| `APP_SEED_ADMIN_PASSWORD` | `admin123` | Senha do admin inicial |
+| `APP_SEED_ADMIN_EMAIL` / `APP_SEED_ADMIN_PASSWORD` | `admin@apae.org` / `admin123` | Admin inicial |
 
-**Perfis Spring:** `default` (API local → Postgres em `localhost`), `docker` (API no container → Postgres no serviço `db`), `test` (H2 em memória).
-
----
-
-## Multi-tenancy
-
-Cada registro pertence a um **tenant** (uma APAE), identificado pelo `slug` (ex.: `apiuna`).
-
-- **Rotas administrativas** (`/api/admin/**`): o tenant vem do **JWT** do usuário logado.
-  Um admin só enxerga/edita dados da própria APAE.
-- **Rotas públicas** (`/api/news`, `/api/events`): o tenant vem do header **`X-Tenant`**.
-  Se ausente, usa o tenant padrão (`APP_SEED_TENANT`).
+**Perfis Spring:** `default` (API local → Postgres em `localhost`), `docker` (API no
+container → Postgres no serviço `db`), `test` (H2 em memória).
 
 ---
 
-## Autenticação
+## Autenticação e multi-tenancy
 
-Login retorna um **access token** (curto) e um **refresh token** (longo). As rotas
-administrativas exigem o header `Authorization: Bearer <accessToken>`. O token carrega
-`sub` (id), `email`, `name`, `role` e `tenant`.
+**Autenticação (JWT).** O login devolve um `accessToken` (curto) e um `refreshToken`
+(longo). Envie o access token nas rotas protegidas: `Authorization: Bearer <token>`.
+O token carrega `sub` (id), `email`, `name`, `role` e `tenant`. Papéis: `ADMIN`,
+`EDITOR`, `VIEWER` — as rotas admin exigem `ADMIN` ou `EDITOR`.
 
-Papéis: `ADMIN`, `EDITOR`, `VIEWER`. As rotas admin exigem `ADMIN` ou `EDITOR`.
-
-**Credenciais de seed (dev):** `admin@apae.org` / `admin123`.
+**Multi-tenancy.** Cada registro pertence a um tenant (uma APAE), identificado por um
+`slug` (ex.: `apiuna`):
+- **Rotas admin** (`/api/admin/**`): o tenant vem do **JWT** — cada admin só vê/edita a
+  própria APAE.
+- **Rotas públicas** (`/api/news`, `/api/events`): o tenant vem do header **`X-Tenant`**
+  (se ausente, usa o tenant padrão).
 
 ---
 
-## Endpoints
+## Referência de rotas
 
-Base URL: `http://localhost:8080`
+Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer Bearer token.
 
-### Autenticação
+| Método | Rota | Auth | Descrição |
+|---|---|:--:|---|
+| POST | `/api/auth/login` | 🔓 | Autentica e retorna tokens + usuário |
+| POST | `/api/auth/refresh` | 🔓 | Gera novos tokens a partir do refresh token |
+| GET | `/api/auth/me` | 🔒 | Dados do usuário autenticado |
+| GET | `/api/news?page&size` | 🔓 | Lista notícias **publicadas** (paginado) |
+| GET | `/api/news/slug/{slug}` | 🔓 | Detalhe de uma notícia por slug |
+| GET | `/api/admin/news?page&size` | 🔒 | Lista todas (rascunho + publicada) do tenant |
+| GET | `/api/admin/news/{id}` | 🔒 | Detalhe por id |
+| POST | `/api/admin/news` | 🔒 | Cria notícia (slug gerado do título) |
+| PUT | `/api/admin/news/{id}` | 🔒 | Atualiza notícia |
+| DELETE | `/api/admin/news/{id}` | 🔒 | Remove notícia |
+| GET | `/api/events?start&end` | 🔓 | Lista eventos no período (datas ISO-8601) |
+| GET | `/api/events/{id}` | 🔓 | Detalhe de um evento |
+| POST | `/api/admin/events` | 🔒 | Cria evento |
+| PUT | `/api/admin/events/{id}` | 🔒 | Atualiza evento |
+| DELETE | `/api/admin/events/{id}` | 🔒 | Remove evento |
 
-#### `POST /api/auth/login`
-Request:
-```json
+Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
+`DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
+
+> Exemplos completos de request/response de **todas** as rotas estão na collection do
+> Postman. Abaixo ficam só os principais para referência rápida.
+
+### Login → `POST /api/auth/login`
+
+```jsonc
+// request
 { "email": "admin@apae.org", "password": "admin123" }
-```
-Response `200`:
-```json
+
+// 200
 {
-  "accessToken": "eyJhbGciOi...",
-  "refreshToken": "eyJhbGciOi...",
-  "user": {
-    "id": "0b3c...","name": "Administrador","email": "admin@apae.org",
-    "role": "ADMIN","tenant": "apiuna"
-  }
+  "accessToken": "eyJ...",
+  "refreshToken": "eyJ...",
+  "user": { "id": "0b3c...", "name": "Administrador", "email": "admin@apae.org", "role": "ADMIN", "tenant": "apiuna" }
 }
 ```
-Erros: `401` (credenciais inválidas), `400` (payload inválido).
+Erros: `401` credenciais inválidas · `400` payload inválido.
 
-#### `POST /api/auth/refresh`
-Request: `{ "refreshToken": "eyJ..." }` → Response `200`: mesmo formato do login.
-Erros: `401` (refresh inválido/expirado ou token de tipo errado).
+### Criar notícia → `POST /api/admin/news` 🔒
 
-#### `GET /api/auth/me`  _(requer Bearer token)_
-Response `200`:
-```json
-{ "id": "0b3c...","name": "Administrador","email": "admin@apae.org","role": "ADMIN","tenant": "apiuna" }
-```
-Erros: `401` (sem token / token inválido).
-
----
-
-### Notícias — público
-
-#### `GET /api/news?page=0&size=9`  _(header `X-Tenant` opcional)_
-Lista **apenas publicadas**, paginado. Response `200`:
-```json
-{
-  "content": [
-    {
-      "id": "e1...","title": "Campanha do Agasalho","slug": "campanha-do-agasalho",
-      "summary": "...","content": "...","coverImageUrl": null,
-      "category": "CAMPANHAS","status": "PUBLISHED",
-      "publishedAt": "2026-08-22T12:00:00Z","author": null,
-      "tags": ["campanha"],
-      "createdAt": "2026-08-20T10:00:00Z","updatedAt": "2026-08-22T12:00:00Z"
-    }
-  ],
-  "page": 0, "size": 9, "totalElements": 1, "totalPages": 1
-}
-```
-
-#### `GET /api/news/slug/{slug}`  _(header `X-Tenant` opcional)_
-Response `200`: um `NewsResponse`. Erros: `404` (não encontrada).
-
----
-
-### Notícias — admin  _(requer Bearer token; escopo pelo tenant do token)_
-
-#### `GET /api/admin/news?page=0&size=20`
-Lista **todas** (rascunhos + publicadas) do tenant, paginado.
-
-#### `GET /api/admin/news/{id}` → `NewsResponse` | `404`
-
-#### `POST /api/admin/news`
-Request (`NewsRequest`):
-```json
+```jsonc
+// request (NewsRequest)
 {
   "title": "Campanha do Agasalho",
   "summary": "Resumo com pelo menos 10 caracteres.",
   "content": "Conteúdo com pelo menos 20 caracteres.",
-  "coverImageUrl": "https://...",
+  "coverImageUrl": "https://...",   // opcional
   "category": "CAMPANHAS",
   "status": "PUBLISHED",
   "tags": ["campanha", "solidariedade"]
 }
-```
-Response `201`: `NewsResponse` (o `slug` é gerado do título; `publishedAt` é preenchido ao publicar).
-Erros: `400` (validação), `401`/`403` (sem permissão).
 
-#### `PUT /api/admin/news/{id}` → `200` `NewsResponse` | `404`
-Mesmo corpo do POST.
-
-#### `DELETE /api/admin/news/{id}` → `204` | `404`
-
-**Categorias:** `CAMPANHAS`, `ESTRUTURA`, `PROJETOS`, `INSTITUCIONAL`.
-**Status:** `DRAFT`, `PUBLISHED`.
-
----
-
-### Eventos — público
-
-#### `GET /api/events?start={ISO}&end={ISO}`  _(header `X-Tenant` opcional)_
-Lista eventos com início no intervalo `[start, end]`. Response `200`:
-```json
-[
-  {
-    "id": "a1...","title": "Bingo Solidário","description": "...","location": "Salão",
-    "start": "2026-09-12T22:00:00Z","end": "2026-09-13T00:00:00Z",
-    "allDay": false,"category": "CAMPANHA"
-  }
-]
+// 201 (NewsResponse) — slug gerado do título; publishedAt preenchido ao publicar
+{
+  "id": "e1...", "title": "Campanha do Agasalho", "slug": "campanha-do-agasalho",
+  "summary": "...", "content": "...", "coverImageUrl": null,
+  "category": "CAMPANHAS", "status": "PUBLISHED",
+  "publishedAt": "2026-08-22T12:00:00Z", "author": null, "tags": ["campanha"],
+  "createdAt": "2026-08-20T10:00:00Z", "updatedAt": "2026-08-22T12:00:00Z"
+}
 ```
 
-#### `GET /api/events/{id}` → `EventResponse` | `404`
+### Listar notícias públicas → `GET /api/news`
 
----
+Retorno paginado (formato `Paginated<T>` do front):
 
-### Eventos — admin  _(requer Bearer token)_
+```jsonc
+{ "content": [ /* NewsResponse[] */ ], "page": 0, "size": 9, "totalElements": 1, "totalPages": 1 }
+```
 
-#### `POST /api/admin/events`
-Request (`EventRequest`):
-```json
+### Criar evento → `POST /api/admin/events` 🔒
+
+```jsonc
+// request (EventRequest) — datas em ISO-8601
 {
   "title": "Bingo Solidário",
   "description": "Renda para o transporte dos alunos",
   "location": "Salão Paroquial",
   "start": "2026-09-12T22:00:00Z",
-  "end": "2026-09-13T00:00:00Z",
+  "end": "2026-09-13T00:00:00Z",   // opcional
   "allDay": false,
   "category": "CAMPANHA"
 }
 ```
-Response `201`: `EventResponse`.
 
-#### `PUT /api/admin/events/{id}` → `200` `EventResponse` | `404`
+### Formato de erro (padrão para todas as falhas)
 
-#### `DELETE /api/admin/events/{id}` → `204` | `404`
-
-**Categorias:** `EVENTO`, `REUNIAO`, `CAMPANHA`, `OFICINA`.
-
----
-
-## Formato de erro
-
-Todas as falhas retornam um corpo padrão:
-```json
-{
-  "timestamp": "2026-09-28T16:30:00Z",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Notícia não encontrada."
-}
+```jsonc
+{ "timestamp": "2026-09-28T16:30:00Z", "status": 404, "error": "Not Found", "message": "Notícia não encontrada." }
 ```
 
 | Código | Quando |
-|---|---|
+|:--:|---|
 | `400` | Validação de payload |
 | `401` | Sem token / token inválido / credenciais inválidas |
 | `403` | Autenticado, mas sem permissão |
@@ -265,15 +222,15 @@ Todas as falhas retornam um corpo padrão:
 
 ---
 
-## Collection do Postman
+## Testes e cobertura
 
-Importe o arquivo [`postman/APAE-Digital.postman_collection.json`](postman/APAE-Digital.postman_collection.json)
-no Postman.
+```bash
+./mvnw verify        # local (JDK 21)
+```
 
-- A collection tem a variável `baseUrl` (padrão `http://localhost:8080`) e `tenant` (`apiuna`).
-- A request **Login** salva automaticamente `accessToken` e `refreshToken` nas variáveis
-  da collection (script em *Tests*), então as rotas admin já vão autenticadas.
-- Ordem sugerida: **Login** → criar notícia/evento → listar → atualizar → excluir.
+- **JUnit 5 + Mockito** nos serviços; **MockMvc** no fluxo HTTP; **H2** em memória (perfil `test`).
+- **JaCoCo** gera o relatório em `target/site/jacoco/index.html`.
+- O build **falha** se a cobertura de linhas cair abaixo de **80%** (atual: ~88%).
 
 ---
 
@@ -282,12 +239,11 @@ no Postman.
 ```
 backend/
 ├── src/main/java/br/org/apaedigital/api/
-│   ├── ApaeDigitalApiApplication.java
 │   ├── config/          # AppProperties, SecurityConfig, DataSeeder (seed inicial)
 │   ├── controller/      # Auth, News/AdminNews, Event/AdminEvent
 │   ├── domain/          # Entidades JPA + enums
 │   ├── dto/             # Requests/Responses (auth, news, event) + PagedResponse
-│   ├── exception/       # NotFound/Unauthorized/Conflict + handler global + ApiError
+│   ├── exception/       # Exceções + handler global + ApiError
 │   ├── repository/      # Spring Data JPA
 │   ├── security/        # JwtService, filtro JWT, CurrentUser, TenantResolver
 │   └── service/         # AuthService, NewsService, EventService, SlugUtil
@@ -296,7 +252,7 @@ backend/
 │   └── db/migration/V1__init.sql # schema (Flyway)
 ├── src/test/...                  # testes unitários e de integração
 ├── postman/                      # collection para importar
-├── Dockerfile                    # build+run (JDK 21)
+├── Dockerfile                    # build + run (JDK 21)
 ├── docker-compose.yml            # Postgres + API
-└── docker-compose.db.yml         # apenas Postgres (p/ rodar a API local)
+└── docker-compose.db.yml         # apenas Postgres (para rodar a API local)
 ```
