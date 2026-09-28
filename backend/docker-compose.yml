@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: apae-db
+    environment:
+      POSTGRES_DB: apae
+      POSTGRES_USER: apae
+      POSTGRES_PASSWORD: apae
+    ports:
+      - "5432:5432"
+    volumes:
+      - apae-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apae -d apae"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: apae-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      APP_JWT_SECRET: dev-secret-change-me-please-32bytes-minimum!!
+      APP_CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
+
+volumes:
+  apae-db-data:

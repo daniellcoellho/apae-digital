@@ -1,0 +1,257 @@
+{
+  "info": {
+    "name": "APAE Digital API",
+    "description": "Collection da API White Label para APAEs (Spring Boot). Faça o Login primeiro: o accessToken e refreshToken sao salvos automaticamente nas variaveis da collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "tenant", "value": "apiuna" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "newsId", "value": "" },
+    { "key": "eventId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "}",
+                  "pm.test('login ok', () => pm.response.code === 200);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@apae.org\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notícias (público)",
+      "item": [
+        {
+          "name": "Listar publicadas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Tenant", "value": "{{tenant}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/news?page=0&size=9",
+              "host": ["{{baseUrl}}"], "path": ["api", "news"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "9" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar por slug",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Tenant", "value": "{{tenant}}" }],
+            "url": { "raw": "{{baseUrl}}/api/news/slug/campanha-do-agasalho", "host": ["{{baseUrl}}"], "path": ["api", "news", "slug", "campanha-do-agasalho"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notícias (admin)",
+      "item": [
+        {
+          "name": "Criar notícia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) pm.collectionVariables.set('newsId', d.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/news", "host": ["{{baseUrl}}"], "path": ["api", "admin", "news"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Campanha do Agasalho\",\n  \"summary\": \"Resumo com pelo menos 10 caracteres.\",\n  \"content\": \"Conteudo com pelo menos vinte caracteres aqui.\",\n  \"coverImageUrl\": null,\n  \"category\": \"CAMPANHAS\",\n  \"status\": \"PUBLISHED\",\n  \"tags\": [\"campanha\", \"solidariedade\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar todas (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/news?page=0&size=20",
+              "host": ["{{baseUrl}}"], "path": ["api", "admin", "news"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Obter por id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/news/{{newsId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "news", "{{newsId}}"] }
+          }
+        },
+        {
+          "name": "Atualizar notícia",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/news/{{newsId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "news", "{{newsId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Campanha do Agasalho 2025\",\n  \"summary\": \"Resumo com pelo menos 10 caracteres.\",\n  \"content\": \"Conteudo com pelo menos vinte caracteres aqui.\",\n  \"coverImageUrl\": null,\n  \"category\": \"CAMPANHAS\",\n  \"status\": \"PUBLISHED\",\n  \"tags\": [\"campanha\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Excluir notícia",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/news/{{newsId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "news", "{{newsId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eventos (público)",
+      "item": [
+        {
+          "name": "Listar por intervalo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Tenant", "value": "{{tenant}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events?start=2026-09-01T00:00:00Z&end=2026-09-30T23:59:59Z",
+              "host": ["{{baseUrl}}"], "path": ["api", "events"],
+              "query": [
+                { "key": "start", "value": "2026-09-01T00:00:00Z" },
+                { "key": "end", "value": "2026-09-30T23:59:59Z" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eventos (admin)",
+      "item": [
+        {
+          "name": "Criar evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) pm.collectionVariables.set('eventId', d.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/events", "host": ["{{baseUrl}}"], "path": ["api", "admin", "events"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Bingo Solidario\",\n  \"description\": \"Renda para o transporte dos alunos\",\n  \"location\": \"Salao Paroquial\",\n  \"start\": \"2026-09-12T22:00:00Z\",\n  \"end\": \"2026-09-13T00:00:00Z\",\n  \"allDay\": false,\n  \"category\": \"CAMPANHA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar evento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "events", "{{eventId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Bingo Solidario (atualizado)\",\n  \"description\": \"Nova descricao\",\n  \"location\": \"Praca Central\",\n  \"start\": \"2026-09-12T22:00:00Z\",\n  \"end\": null,\n  \"allDay\": true,\n  \"category\": \"EVENTO\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Excluir evento",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "events", "{{eventId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: apae-digital-api
+  # Perfil padrao: rodar a API localmente apontando para o Postgres do Docker (porta 5432).
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/apae}
+    username: ${DB_USER:apae}
+    password: ${DB_PASSWORD:apae}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# Configuracoes da aplicacao (JWT, seed, CORS)
+app:
+  jwt:
+    # Em producao, defina APP_JWT_SECRET (>= 32 bytes). Este default e apenas para dev.
+    secret: ${APP_JWT_SECRET:dev-secret-change-me-please-32bytes-minimum!!}
+    access-token-ttl-minutes: ${APP_JWT_ACCESS_TTL:60}
+    refresh-token-ttl-days: ${APP_JWT_REFRESH_TTL:7}
+  cors:
+    allowed-origins: ${APP_CORS_ORIGINS:http://localhost:3000}
+  seed:
+    # Cria um admin inicial no primeiro start (apenas se nao existir).
+    enabled: ${APP_SEED_ENABLED:true}
+    tenant: ${APP_SEED_TENANT:apiuna}
+    admin-name: ${APP_SEED_ADMIN_NAME:Administrador}
+    admin-email: ${APP_SEED_ADMIN_EMAIL:admin@apae.org}
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:admin123}
+
+---
+# Perfil usado quando a API roda DENTRO do Docker (aponta para o servico "db").
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://db:5432/apae
+    username: apae
+    password: apae

@@ -1,0 +1,17 @@
+# Sobe APENAS o PostgreSQL, para quem quer rodar a API localmente (mais agil).
+# Uso: docker compose -f docker-compose.db.yml up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: apae-db
+    environment:
+      POSTGRES_DB: apae
+      POSTGRES_USER: apae
+      POSTGRES_PASSWORD: apae
+    ports:
+      - "5432:5432"
+    volumes:
+      - apae-db-data:/var/lib/postgresql/data
+
+volumes:
+  apae-db-data:
