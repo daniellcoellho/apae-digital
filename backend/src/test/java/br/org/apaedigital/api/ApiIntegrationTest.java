@@ -289,4 +289,58 @@ class ApiIntegrationTest {
                         .content("{\"name\":\"X\",\"city\":\"Y\",\"logoUrl\":\"/l.svg\",\"radius\":\"0.5rem\"}"))
                 .andExpect(status().isBadRequest());
     }
+
+    // ---------- Doação ----------
+
+    @Test
+    void doacaoPublicaSemConfiguracaoRetorna404() throws Exception {
+        mvc.perform(get("/api/tenants/" + TENANT + "/donation"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void adminSalvaERecuperaDoacao() throws Exception {
+        String token = login();
+
+        String body = """
+                {
+                  "pix": {
+                    "key": "12966084928", "keyType": "CPF", "keyDisplay": "129.660.849-28",
+                    "merchantName": "APAE DE APIUNA", "merchantCity": "APIUNA"
+                  },
+                  "banks": [
+                    { "bank": "Banco X", "agency": "0001", "account": "12345-6", "holder": "APAE de Apiúna", "document": "CNPJ 00.000.000/0001-00" }
+                  ]
+                }
+                """;
+
+        mvc.perform(put("/api/admin/donation")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pix.key", is("12966084928")))
+                .andExpect(jsonPath("$.banks[0].bank", is("Banco X")));
+
+        // agora o publico consegue ver
+        mvc.perform(get("/api/tenants/" + TENANT + "/donation"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pix.merchantName", is("APAE DE APIUNA")));
+    }
+
+    @Test
+    void salvarDoacaoSemTokenRetorna401() throws Exception {
+        mvc.perform(put("/api/admin/donation")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void salvarDoacaoInvalidaRetorna400() throws Exception {
+        String token = login();
+        // pix ausente
+        mvc.perform(put("/api/admin/donation")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content("{\"banks\":[]}"))
+                .andExpect(status().isBadRequest());
+    }
 }

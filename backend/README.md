@@ -67,10 +67,10 @@ demais ainda são salvos localmente no navegador (localStorage) no front.
 | Notícias | ✅ | CRUD admin + rotas públicas |
 | Eventos | ✅ | CRUD admin + consulta por período |
 | Identidade visual (tema) | ✅ | GET público + GET/PUT admin (por tenant) |
+| Doação | ✅ | GET público + GET/PUT admin (chave PIX, contas) |
 | Página inicial (hero + números) | ⛔ roadmap | — |
 | Serviços / Atendimentos | ⛔ roadmap | áreas e serviços (blocos) |
 | Transparência | ⛔ roadmap | documentos |
-| Doação | ⛔ roadmap | chave PIX, contas |
 | Institucional (Sobre) | ⛔ roadmap | subpáginas de blocos |
 
 O padrão (entidade → repositório → service → controller → DTO → testes) já está
@@ -140,6 +140,9 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | GET | `/api/tenants/{slug}/theme` | 🔓 | Tema (identidade visual) do tenant |
 | GET | `/api/admin/theme` | 🔒 | Tema do tenant autenticado |
 | PUT | `/api/admin/theme` | 🔒 | Salva/atualiza o tema do tenant |
+| GET | `/api/tenants/{slug}/donation` | 🔓 | Dados de doação (PIX + contas) do tenant |
+| GET | `/api/admin/donation` | 🔒 | Doação do tenant autenticado |
+| PUT | `/api/admin/donation` | 🔒 | Salva/atualiza os dados de doação |
 
 Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
 `DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
@@ -147,6 +150,10 @@ Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, s
 **Tema:** cores em canais RGB (ex.: `"30 107 82"`). Se o tenant ainda não personalizou,
 o GET retorna um **tema padrão** (fallback) com o nome/cidade do tenant. O `PUT` faz
 *upsert* e força o `tenant` dono (ignora o campo `tenant` enviado no corpo).
+
+**Doação:** `pix.keyType` ∈ `CPF·CNPJ·EMAIL·TELEFONE·ALEATORIA`. Diferente do tema, **não
+há padrão**: se a APAE ainda não configurou, o GET retorna `404` (o front mostra "em
+breve"). O `PUT` faz *upsert*; `banks` ausente é normalizado para lista vazia.
 
 > Exemplos completos de request/response de **todas** as rotas estão na collection do
 > Postman. Abaixo ficam só os principais para referência rápida.
@@ -232,6 +239,24 @@ Retorno paginado (formato `Paginated<T>` do front):
   "radius": "0.875rem",
   "contact": { "email": "contato@apae.org", "phone": "(47) 0000-0000", "address": "Apiúna - SC", "social": { "instagram": "https://instagram.com/..." } },
   "donationUrl": "/doacoes"
+}
+```
+
+### Salvar doação → `PUT /api/admin/donation` 🔒
+
+```jsonc
+// request/response (DonationInfoDto)
+{
+  "pix": {
+    "key": "12966084928",            // só dígitos p/ CPF/CNPJ
+    "keyType": "CPF",                // CPF | CNPJ | EMAIL | TELEFONE | ALEATORIA
+    "keyDisplay": "129.660.849-28",  // como exibir no site
+    "merchantName": "APAE DE APIUNA",
+    "merchantCity": "APIUNA"
+  },
+  "banks": [
+    { "bank": "Banco X", "agency": "0001", "account": "12345-6", "holder": "APAE de Apiúna", "document": "CNPJ 00.000.000/0001-00" }
+  ]
 }
 ```
 

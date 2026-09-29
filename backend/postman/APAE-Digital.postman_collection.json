@@ -288,6 +288,42 @@
           }
         }
       ]
+    },
+    {
+      "name": "Doação",
+      "item": [
+        {
+          "name": "Doação do tenant (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/tenants/{{tenant}}/donation", "host": ["{{baseUrl}}"], "path": ["api", "tenants", "{{tenant}}", "donation"] }
+          }
+        },
+        {
+          "name": "Doação (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/donation", "host": ["{{baseUrl}}"], "path": ["api", "admin", "donation"] }
+          }
+        },
+        {
+          "name": "Salvar doação (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/donation", "host": ["{{baseUrl}}"], "path": ["api", "admin", "donation"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pix\": {\n    \"key\": \"12966084928\",\n    \"keyType\": \"CPF\",\n    \"keyDisplay\": \"129.660.849-28\",\n    \"merchantName\": \"APAE DE APIUNA\",\n    \"merchantCity\": \"APIUNA\"\n  },\n  \"banks\": [\n    { \"bank\": \"Banco X\", \"agency\": \"0001\", \"account\": \"12345-6\", \"holder\": \"APAE de Apiuna\", \"document\": \"CNPJ 00.000.000/0001-00\" }\n  ]\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

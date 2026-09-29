@@ -1,15 +1,16 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, Lightbulb } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { getDonationInfo } from '@/content/doacoes'
+import type { DonationInfo } from '@/content/doacoes'
+import { getDefaultDonationInfo } from '@/content/doacoes'
+import { tenantService } from '@/services/tenantService'
 import { buildPixBrCode } from '@/features/donations/pixBrCode'
 import { PixQRCode } from '@/features/donations/PixQRCode'
-import { useSettingsVersion } from '@/hooks/useSettingsVersion'
 
 /** Botao de copiar com feedback temporario. */
 function CopyButton({ text, label = 'Copiar' }: { text: string; label?: string }) {
@@ -36,9 +37,25 @@ function CopyButton({ text, label = 'Copiar' }: { text: string; label?: string }
 
 export function DoacoesPage() {
   const { theme } = useTheme()
-  const settingsVersion = useSettingsVersion()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const info = useMemo(() => getDonationInfo(theme.tenant), [theme.tenant, settingsVersion])
+  const [info, setInfo] = useState<DonationInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Busca os dados de doacao da API; fallback para o conteudo local se ausente.
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    tenantService
+      .getPublicDonation(theme.tenant)
+      .then((data) => {
+        if (active) setInfo(data ?? getDefaultDonationInfo(theme.tenant) ?? null)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [theme.tenant])
 
   // Monta o Pix Copia e Cola (valor livre).
   const brCode = useMemo(() => {
@@ -51,13 +68,13 @@ export function DoacoesPage() {
     })
   }, [info])
 
-  if (!info) {
+  if (loading || !info) {
     return (
       <>
         <PageMeta title="Doações" />
         <PageHeader title="Doações" subtitle="Sua contribuição transforma vidas." />
         <div className="container-page py-16">
-          <p className="text-ink-muted">Dados de doação em breve.</p>
+          <p className="text-ink-muted">{loading ? 'Carregando...' : 'Dados de doação em breve.'}</p>
         </div>
       </>
     )
