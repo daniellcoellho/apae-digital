@@ -252,6 +252,42 @@
           }
         }
       ]
+    },
+    {
+      "name": "Tema (Identidade Visual)",
+      "item": [
+        {
+          "name": "Tema do tenant (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/tenants/{{tenant}}/theme", "host": ["{{baseUrl}}"], "path": ["api", "tenants", "{{tenant}}", "theme"] }
+          }
+        },
+        {
+          "name": "Tema (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/theme", "host": ["{{baseUrl}}"], "path": ["api", "admin", "theme"] }
+          }
+        },
+        {
+          "name": "Salvar tema (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/theme", "host": ["{{baseUrl}}"], "path": ["api", "admin", "theme"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"APAE de Apiuna\",\n  \"city\": \"Apiuna - SC\",\n  \"logoUrl\": \"/tenants/apiuna/logo.svg\",\n  \"logoLightUrl\": null,\n  \"colors\": {\n    \"primary\": \"21 128 61\", \"primaryLight\": \"74 179 111\", \"primaryDark\": \"15 92 44\",\n    \"primaryContrast\": \"255 255 255\", \"secondary\": \"234 88 12\", \"secondaryLight\": \"251 146 60\",\n    \"secondaryDark\": \"194 65 12\", \"secondaryContrast\": \"255 255 255\", \"accent\": \"2 132 199\",\n    \"surface\": \"255 255 255\", \"surfaceAlt\": \"233 241 235\", \"ink\": \"20 27 24\", \"inkMuted\": \"82 96 88\"\n  },\n  \"typography\": { \"heading\": \"'Poppins', sans-serif\", \"body\": \"'Inter', sans-serif\" },\n  \"radius\": \"0.875rem\",\n  \"contact\": { \"email\": \"contato@apae.org\", \"phone\": \"(47) 0000-0000\", \"address\": \"Apiuna - SC\", \"social\": { \"instagram\": \"https://instagram.com/x\", \"facebook\": null, \"youtube\": null } },\n  \"donationUrl\": \"/doacoes\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

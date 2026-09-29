@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/news/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tenants/*/theme").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // Admin exige autenticacao + papel
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "EDITOR")

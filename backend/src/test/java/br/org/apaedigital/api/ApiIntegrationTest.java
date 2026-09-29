@@ -219,4 +219,74 @@ class ApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title", is("Bingo Solidário")));
     }
+
+    // ---------- Tema (identidade visual) ----------
+
+    @Test
+    void temaPublicoSemPersonalizacaoRetornaPadrao() throws Exception {
+        mvc.perform(get("/api/tenants/" + TENANT + "/theme"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tenant", is(TENANT)))
+                .andExpect(jsonPath("$.colors.primary").exists());
+    }
+
+    @Test
+    void temaTenantInexistenteRetorna404() throws Exception {
+        mvc.perform(get("/api/tenants/nao-existe/theme"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void adminSalvaERecuperaTema() throws Exception {
+        String token = login();
+
+        String body = """
+                {
+                  "name": "APAE de Apiúna",
+                  "city": "Apiúna - SC",
+                  "logoUrl": "/tenants/apiuna/logo.svg",
+                  "colors": {
+                    "primary": "21 128 61", "primaryLight": "74 179 111", "primaryDark": "15 92 44",
+                    "primaryContrast": "255 255 255", "secondary": "234 88 12", "secondaryLight": "251 146 60",
+                    "secondaryDark": "194 65 12", "secondaryContrast": "255 255 255", "accent": "2 132 199",
+                    "surface": "255 255 255", "surfaceAlt": "233 241 235", "ink": "20 27 24", "inkMuted": "82 96 88"
+                  },
+                  "typography": { "heading": "'Poppins', sans-serif", "body": "'Inter', sans-serif" },
+                  "radius": "0.875rem",
+                  "contact": { "email": "c@apae.org", "phone": "(47) 0000-0000", "address": "Apiúna - SC", "social": null },
+                  "donationUrl": "/doacoes"
+                }
+                """;
+
+        mvc.perform(put("/api/admin/theme")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tenant", is(TENANT)))
+                .andExpect(jsonPath("$.colors.primary", is("21 128 61")));
+
+        // agora o publico ve o tema personalizado
+        mvc.perform(get("/api/tenants/" + TENANT + "/theme"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.colors.primary", is("21 128 61")))
+                .andExpect(jsonPath("$.radius", is("0.875rem")));
+    }
+
+    @Test
+    void salvarTemaSemTokenRetorna401() throws Exception {
+        mvc.perform(put("/api/admin/theme")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void salvarTemaInvalidoRetorna400() throws Exception {
+        String token = login();
+        // faltam campos obrigatorios (colors/typography)
+        mvc.perform(put("/api/admin/theme")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("{\"name\":\"X\",\"city\":\"Y\",\"logoUrl\":\"/l.svg\",\"radius\":\"0.5rem\"}"))
+                .andExpect(status().isBadRequest());
+    }
 }

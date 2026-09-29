@@ -66,7 +66,7 @@ demais ainda são salvos localmente no navegador (localStorage) no front.
 | Autenticação (JWT) | ✅ | login / refresh / me |
 | Notícias | ✅ | CRUD admin + rotas públicas |
 | Eventos | ✅ | CRUD admin + consulta por período |
-| Identidade visual (tema) | ⛔ roadmap | cores, logo, tipografia por tenant |
+| Identidade visual (tema) | ✅ | GET público + GET/PUT admin (por tenant) |
 | Página inicial (hero + números) | ⛔ roadmap | — |
 | Serviços / Atendimentos | ⛔ roadmap | áreas e serviços (blocos) |
 | Transparência | ⛔ roadmap | documentos |
@@ -137,9 +137,16 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | POST | `/api/admin/events` | 🔒 | Cria evento |
 | PUT | `/api/admin/events/{id}` | 🔒 | Atualiza evento |
 | DELETE | `/api/admin/events/{id}` | 🔒 | Remove evento |
+| GET | `/api/tenants/{slug}/theme` | 🔓 | Tema (identidade visual) do tenant |
+| GET | `/api/admin/theme` | 🔒 | Tema do tenant autenticado |
+| PUT | `/api/admin/theme` | 🔒 | Salva/atualiza o tema do tenant |
 
 Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
 `DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
+
+**Tema:** cores em canais RGB (ex.: `"30 107 82"`). Se o tenant ainda não personalizou,
+o GET retorna um **tema padrão** (fallback) com o nome/cidade do tenant. O `PUT` faz
+*upsert* e força o `tenant` dono (ignora o campo `tenant` enviado no corpo).
 
 > Exemplos completos de request/response de **todas** as rotas estão na collection do
 > Postman. Abaixo ficam só os principais para referência rápida.
@@ -203,6 +210,28 @@ Retorno paginado (formato `Paginated<T>` do front):
   "end": "2026-09-13T00:00:00Z",   // opcional
   "allDay": false,
   "category": "CAMPANHA"
+}
+```
+
+### Salvar tema → `PUT /api/admin/theme` 🔒
+
+```jsonc
+// request/response (BrandThemeDto) — o campo "tenant" é definido pelo servidor
+{
+  "name": "APAE de Apiúna",
+  "city": "Apiúna - SC",
+  "logoUrl": "/tenants/apiuna/logo.svg",
+  "logoLightUrl": null,
+  "colors": {
+    "primary": "21 128 61", "primaryLight": "74 179 111", "primaryDark": "15 92 44",
+    "primaryContrast": "255 255 255", "secondary": "234 88 12", "secondaryLight": "251 146 60",
+    "secondaryDark": "194 65 12", "secondaryContrast": "255 255 255", "accent": "2 132 199",
+    "surface": "255 255 255", "surfaceAlt": "233 241 235", "ink": "20 27 24", "inkMuted": "82 96 88"
+  },
+  "typography": { "heading": "'Poppins', sans-serif", "body": "'Inter', sans-serif" },
+  "radius": "0.875rem",
+  "contact": { "email": "contato@apae.org", "phone": "(47) 0000-0000", "address": "Apiúna - SC", "social": { "instagram": "https://instagram.com/..." } },
+  "donationUrl": "/doacoes"
 }
 ```
 
