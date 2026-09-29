@@ -3,6 +3,7 @@ import type { BrandTheme } from '@/theme/theme.types'
 import { getThemeBySlug } from '@/theme/themes'
 import type { DonationInfo } from '@/content/doacoes'
 import type { TransparencyContent } from '@/content/transparencia'
+import type { HomeContent } from '@/content/home'
 
 /**
  * Servico de tema (identidade visual) White Label.
@@ -107,6 +108,37 @@ export const tenantService = {
   /** Cria/atualiza o conteudo de transparencia do tenant autenticado (admin). */
   async updateAdminTransparency(content: TransparencyContent): Promise<TransparencyContent> {
     const { data } = await http.put<TransparencyContent>('/admin/transparency', content)
+    return data
+  },
+
+  // ---- Home (pagina inicial) ----
+
+  /**
+   * Conteudo publico da Home do tenant.
+   * Retorna null em erro (o chamador usa o fallback local).
+   */
+  async getPublicHome(slug: string): Promise<HomeContent | null> {
+    try {
+      const { data } = await http.get<HomeContent>(`/tenants/${slug}/home`)
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  /** Conteudo da Home do tenant autenticado (admin). */
+  async getAdminHome(): Promise<HomeContent | null> {
+    try {
+      const { data } = await http.get<HomeContent>('/admin/home')
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  /** Cria/atualiza o conteudo da Home do tenant autenticado (admin). */
+  async updateAdminHome(content: HomeContent): Promise<HomeContent> {
+    const { data } = await http.put<HomeContent>('/admin/home', content)
     return data
   },
 }

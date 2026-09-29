@@ -1,17 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
-import { localSettings } from '@/services/localSettings'
-import { getHomeContent, type HomeContent, type HomeStat } from '@/content/home'
+import { tenantService } from '@/services/tenantService'
+import { getDefaultHomeContent, type HomeContent, type HomeStat } from '@/content/home'
 
 /** Admin > Pagina Inicial: edita hero e numeros de impacto. */
 export function HomeAdminPage() {
   const { theme } = useTheme()
-  const [content, setContent] = useState<HomeContent>(() => getHomeContent(theme.tenant))
+  const [content, setContent] = useState<HomeContent>(() => getDefaultHomeContent(theme.tenant))
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Carrega o conteudo do tenant autenticado.
+  useEffect(() => {
+    let active = true
+    tenantService.getAdminHome().then((data) => {
+      if (active && data) setContent(data)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const inputCls = 'mt-1 w-full rounded-theme border border-black/10 px-4 py-2.5 focus:border-primary'
 
@@ -33,16 +46,19 @@ export function HomeAdminPage() {
     }))
   }
 
-  function save() {
-    localSettings.set<HomeContent>(theme.tenant, 'home', content)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
-  function resetDefault() {
-    if (!confirm('Restaurar o conteúdo padrão da Home? As personalizações locais serão apagadas.')) return
-    localSettings.clear(theme.tenant, 'home')
-    window.location.reload()
+  async function save() {
+    setSaving(true)
+    setError(null)
+    try {
+      const updated = await tenantService.updateAdminHome(content)
+      setContent(updated)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setError('Não foi possível salvar. Verifique os campos e sua conexão.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -53,14 +69,15 @@ export function HomeAdminPage() {
           <h1 className="text-2xl font-bold text-ink">Página Inicial</h1>
           <p className="mt-1 text-ink-muted">Edite o destaque principal e os números de impacto.</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={resetDefault} className="btn-outline">Restaurar padrão</button>
-          <button onClick={save} className="btn-primary inline-flex items-center gap-1.5">
-            {saved && <Check className="h-4 w-4" aria-hidden />}
-            {saved ? 'Salvo' : 'Salvar'}
-          </button>
-        </div>
+        <button onClick={save} disabled={saving} className="btn-primary inline-flex items-center gap-1.5">
+          {saved && <Check className="h-4 w-4" aria-hidden />}
+          {saving ? 'Salvando...' : saved ? 'Salvo' : 'Salvar'}
+        </button>
       </div>
+
+      {error && (
+        <p className="mt-4 rounded-2xl bg-secondary/10 px-4 py-2 text-sm text-secondary-dark">{error}</p>
+      )}
 
       <div className="mt-8 max-w-2xl space-y-8">
         {/* Hero */}

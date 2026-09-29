@@ -386,4 +386,65 @@ class ApiIntegrationTest {
                         .contentType("application/json").content("{}"))
                 .andExpect(status().isUnauthorized());
     }
+
+    // ---------- Página Inicial (Home) ----------
+
+    @Test
+    void homePublicaSemConteudoRetornaPadrao() throws Exception {
+        mvc.perform(get("/api/tenants/" + TENANT + "/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hero.titleHighlight", is("alguém que apoia")))
+                .andExpect(jsonPath("$.impact.label", is("Nosso impacto")));
+    }
+
+    @Test
+    void adminSalvaERecuperaHome() throws Exception {
+        String token = login();
+
+        String body = """
+                {
+                  "hero": {
+                    "badge": "Apiúna - SC", "titlePrefix": "Cada conquista começa com",
+                    "titleHighlight": "alguém que apoia", "subtitle": "Subtítulo.",
+                    "imageUrl": "https://x/img.jpg", "primaryCtaLabel": "Quero doar",
+                    "secondaryCtaLabel": "Ver mais", "floatingValue": 312, "floatingLabel": "pessoas atendidas"
+                  },
+                  "impact": {
+                    "label": "Nosso impacto", "title": "Números que são histórias", "description": "Descrição.",
+                    "stats": [
+                      { "value": 312, "suffix": "", "label": "Pessoas atendidas", "hint": "Por ano" },
+                      { "value": 5400, "suffix": "+", "label": "Atendimentos", "hint": "Em 2025" }
+                    ]
+                  }
+                }
+                """;
+
+        mvc.perform(put("/api/admin/home")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.impact.stats", org.hamcrest.Matchers.hasSize(2)));
+
+        mvc.perform(get("/api/tenants/" + TENANT + "/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hero.subtitle", is("Subtítulo.")))
+                .andExpect(jsonPath("$.impact.stats[1].suffix", is("+")));
+    }
+
+    @Test
+    void salvarHomeSemTokenRetorna401() throws Exception {
+        mvc.perform(put("/api/admin/home")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void salvarHomeInvalidaRetorna400() throws Exception {
+        String token = login();
+        // hero ausente
+        mvc.perform(put("/api/admin/home")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content("{\"impact\":{}}"))
+                .andExpect(status().isBadRequest());
+    }
 }

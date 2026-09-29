@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Briefcase,
@@ -22,8 +22,8 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { CountUp } from '@/components/common/CountUp'
 import { NEWS_CATEGORIES } from '@/features/news/categories'
 import type { NewsCategory } from '@/types'
-import { getHomeContent } from '@/content/home'
-import { useSettingsVersion } from '@/hooks/useSettingsVersion'
+import { getDefaultHomeContent } from '@/content/home'
+import { tenantService } from '@/services/tenantService'
 
 // ---- Dados fixos das secoes ainda nao editaveis (noticias/agenda/servicos/doacao) ----
 
@@ -89,9 +89,19 @@ const campaign = {
 
 export function HomePage() {
   const { theme } = useTheme()
-  const settingsVersion = useSettingsVersion()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const home = useMemo(() => getHomeContent(theme.tenant), [theme.tenant, settingsVersion])
+  // Estado inicial sincrono (default local) evita flash; busca a versao real da API apos montar.
+  const [home, setHome] = useState(() => getDefaultHomeContent(theme.tenant))
+
+  useEffect(() => {
+    let active = true
+    tenantService.getPublicHome(theme.tenant).then((data) => {
+      if (active && data) setHome(data)
+    })
+    return () => {
+      active = false
+    }
+  }, [theme.tenant])
+
   const { hero, impact } = home
   const donationUrl = theme.donationUrl ?? '/doacoes'
   const progress = Math.round((campaign.raised / campaign.goal) * 100)

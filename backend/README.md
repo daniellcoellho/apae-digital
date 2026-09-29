@@ -69,7 +69,7 @@ demais ainda são salvos localmente no navegador (localStorage) no front.
 | Identidade visual (tema) | ✅ | GET público + GET/PUT admin (por tenant) |
 | Doação | ✅ | GET público + GET/PUT admin (chave PIX, contas) |
 | Transparência | ✅ | GET público + GET/PUT admin (documentos) |
-| Página inicial (hero + números) | ⛔ roadmap | — |
+| Página inicial (hero + números) | ✅ | GET público + GET/PUT admin |
 | Serviços / Atendimentos | ⛔ roadmap | áreas e serviços (blocos) |
 | Institucional (Sobre) | ⛔ roadmap | subpáginas de blocos |
 
@@ -146,6 +146,9 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | GET | `/api/tenants/{slug}/transparency` | 🔓 | Conteúdo de transparência do tenant |
 | GET | `/api/admin/transparency` | 🔒 | Transparência do tenant autenticado |
 | PUT | `/api/admin/transparency` | 🔒 | Salva/atualiza a transparência |
+| GET | `/api/tenants/{slug}/home` | 🔓 | Conteúdo da Home (hero + números) do tenant |
+| GET | `/api/admin/home` | 🔒 | Home do tenant autenticado |
+| PUT | `/api/admin/home` | 🔒 | Salva/atualiza a Home |
 
 Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
 `DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
@@ -161,6 +164,10 @@ breve"). O `PUT` faz *upsert*; `banks` ausente é normalizado para lista vazia.
 **Transparência:** se a APAE ainda não configurou, o GET retorna um conteúdo **vazio**
 (`intro: ""`, `documents: []`) — a página pública sempre renderiza. O `PUT` faz *upsert*;
 `documents` ausente vira lista vazia.
+
+**Página inicial (Home):** `hero` (título/destaque/subtítulo/imagem/CTAs/card flutuante) +
+`impact` (rótulo/título/descrição + `stats[]`). Se não configurado, o GET retorna um
+**padrão** com o nome/cidade do tenant. O `PUT` faz *upsert*.
 
 > Exemplos completos de request/response de **todas** as rotas estão na collection do
 > Postman. Abaixo ficam só os principais para referência rápida.
@@ -277,6 +284,34 @@ Retorno paginado (formato `Paginated<T>` do front):
     { "title": "Relatório anual 2025", "description": "Prestação de contas.", "tag": "RELATÓRIO", "url": "https://.../relatorio.pdf" },
     { "title": "Estatuto social", "description": "Documento constitutivo.", "tag": "INSTITUCIONAL", "url": null }
   ]
+}
+```
+
+### Salvar Home → `PUT /api/admin/home` 🔒
+
+```jsonc
+// request/response (HomeContentDto)
+{
+  "hero": {
+    "badge": "Apiúna - SC",
+    "titlePrefix": "Cada conquista aqui começa com",
+    "titleHighlight": "alguém que apoia",
+    "subtitle": "A APAE de Apiúna oferece educação, saúde e assistência social...",
+    "imageUrl": "https://.../foto.jpg",
+    "primaryCtaLabel": "Quero doar",
+    "secondaryCtaLabel": "Ver o que está acontecendo",
+    "floatingValue": 312,
+    "floatingLabel": "pessoas atendidas neste ano com o apoio da comunidade"
+  },
+  "impact": {
+    "label": "Nosso impacto",
+    "title": "Números que são histórias de vida",
+    "description": "Atrás de cada número existe uma pessoa...",
+    "stats": [
+      { "value": 312, "suffix": "", "label": "Pessoas atendidas por ano", "hint": "Crianças, jovens e adultos" },
+      { "value": 5400, "suffix": "+", "label": "Atendimentos realizados", "hint": "Terapias e avaliações em 2025" }
+    ]
+  }
 }
 ```
 
