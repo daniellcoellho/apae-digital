@@ -1,23 +1,40 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
-import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
-import { localSettings } from '@/services/localSettings'
+import { tenantService } from '@/services/tenantService'
 import {
-  getTransparency,
   type TransparencyContent,
   type TransparencyDoc,
 } from '@/content/transparencia'
 
 const emptyDoc: TransparencyDoc = { title: '', description: '', tag: '', url: '' }
+const emptyContent: TransparencyContent = { intro: '', documents: [] }
 
 /** Admin > Transparencia: CRUD dos documentos exibidos no site. */
 export function TransparencyAdminPage() {
-  const { theme } = useTheme()
-  const [content, setContent] = useState<TransparencyContent>(() => getTransparency(theme.tenant))
+  const [content, setContent] = useState<TransparencyContent>(emptyContent)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Carrega o conteudo do tenant autenticado.
+  useEffect(() => {
+    let active = true
+    tenantService
+      .getAdminTransparency()
+      .then((data) => {
+        if (active && data) setContent(data)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const inputCls = 'mt-1 w-full rounded-theme border border-black/10 px-4 py-2.5 focus:border-primary'
 
@@ -36,10 +53,19 @@ export function TransparencyAdminPage() {
     setContent((c) => ({ ...c, documents: c.documents.filter((_, i) => i !== index) }))
   }
 
-  function save() {
-    localSettings.set<TransparencyContent>(theme.tenant, 'transparencia', content)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  async function save() {
+    setSaving(true)
+    setError(null)
+    try {
+      const updated = await tenantService.updateAdminTransparency(content)
+      setContent(updated)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setError('Não foi possível salvar. Verifique os campos e sua conexão.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -50,11 +76,15 @@ export function TransparencyAdminPage() {
           <h1 className="text-2xl font-bold text-ink">Transparência</h1>
           <p className="mt-1 text-ink-muted">Gerencie os documentos de prestação de contas.</p>
         </div>
-        <button onClick={save} className="btn-primary inline-flex items-center gap-1.5">
+        <button onClick={save} disabled={saving || loading} className="btn-primary inline-flex items-center gap-1.5">
           {saved && <Check className="h-4 w-4" aria-hidden />}
-          {saved ? 'Salvo' : 'Salvar'}
+          {saving ? 'Salvando...' : saved ? 'Salvo' : 'Salvar'}
         </button>
       </div>
+
+      {error && (
+        <p className="mt-4 rounded-2xl bg-secondary/10 px-4 py-2 text-sm text-secondary-dark">{error}</p>
+      )}
 
       <div className="mt-8 max-w-2xl space-y-6">
         <section className="card p-6">

@@ -324,6 +324,42 @@
           }
         }
       ]
+    },
+    {
+      "name": "Transparência",
+      "item": [
+        {
+          "name": "Transparência do tenant (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/tenants/{{tenant}}/transparency", "host": ["{{baseUrl}}"], "path": ["api", "tenants", "{{tenant}}", "transparency"] }
+          }
+        },
+        {
+          "name": "Transparência (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/transparency", "host": ["{{baseUrl}}"], "path": ["api", "admin", "transparency"] }
+          }
+        },
+        {
+          "name": "Salvar transparência (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/transparency", "host": ["{{baseUrl}}"], "path": ["api", "admin", "transparency"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intro\": \"Consulte nossos relatorios e documentos.\",\n  \"documents\": [\n    { \"title\": \"Relatorio anual 2025\", \"description\": \"Prestacao de contas.\", \"tag\": \"RELATORIO\", \"url\": \"https://exemplo/relatorio.pdf\" },\n    { \"title\": \"Estatuto social\", \"description\": \"Documento constitutivo.\", \"tag\": \"INSTITUCIONAL\", \"url\": null }\n  ]\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

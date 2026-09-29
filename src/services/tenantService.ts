@@ -2,6 +2,7 @@ import { http } from './http'
 import type { BrandTheme } from '@/theme/theme.types'
 import { getThemeBySlug } from '@/theme/themes'
 import type { DonationInfo } from '@/content/doacoes'
+import type { TransparencyContent } from '@/content/transparencia'
 
 /**
  * Servico de tema (identidade visual) White Label.
@@ -75,6 +76,37 @@ export const tenantService = {
   /** Cria/atualiza os dados de doacao do tenant autenticado (admin). */
   async updateAdminDonation(info: DonationInfo): Promise<DonationInfo> {
     const { data } = await http.put<DonationInfo>('/admin/donation', info)
+    return data
+  },
+
+  // ---- Transparencia ----
+
+  /**
+   * Conteudo publico de transparencia do tenant.
+   * Retorna null em erro (o chamador usa o fallback local).
+   */
+  async getPublicTransparency(slug: string): Promise<TransparencyContent | null> {
+    try {
+      const { data } = await http.get<TransparencyContent>(`/tenants/${slug}/transparency`)
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  /** Conteudo de transparencia do tenant autenticado (admin). */
+  async getAdminTransparency(): Promise<TransparencyContent | null> {
+    try {
+      const { data } = await http.get<TransparencyContent>('/admin/transparency')
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  /** Cria/atualiza o conteudo de transparencia do tenant autenticado (admin). */
+  async updateAdminTransparency(content: TransparencyContent): Promise<TransparencyContent> {
+    const { data } = await http.put<TransparencyContent>('/admin/transparency', content)
     return data
   },
 }

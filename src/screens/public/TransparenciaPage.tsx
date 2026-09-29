@@ -1,19 +1,40 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Download } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { getTransparency } from '@/content/transparencia'
-import { useSettingsVersion } from '@/hooks/useSettingsVersion'
+import { getDefaultTransparency, type TransparencyContent } from '@/content/transparencia'
+import { tenantService } from '@/services/tenantService'
 
 export function TransparenciaPage() {
   const { theme } = useTheme()
-  const settingsVersion = useSettingsVersion()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const content = useMemo(() => getTransparency(theme.tenant), [theme.tenant, settingsVersion])
+  const [content, setContent] = useState<TransparencyContent | null>(null)
+
+  // Busca da API; fallback para o conteudo local se ausente/erro.
+  useEffect(() => {
+    let active = true
+    tenantService.getPublicTransparency(theme.tenant).then((data) => {
+      if (active) setContent(data ?? getDefaultTransparency(theme.tenant))
+    })
+    return () => {
+      active = false
+    }
+  }, [theme.tenant])
+
+  if (!content) {
+    return (
+      <>
+        <PageMeta title="Transparência" description="Prestação de contas, relatórios e documentos." />
+        <PageHeader title="Transparência" subtitle="" />
+        <div className="container-page py-16">
+          <p className="text-ink-muted">Carregando...</p>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>

@@ -343,4 +343,47 @@ class ApiIntegrationTest {
                         .contentType("application/json").content("{\"banks\":[]}"))
                 .andExpect(status().isBadRequest());
     }
+
+    // ---------- Transparência ----------
+
+    @Test
+    void transparenciaPublicaSemConteudoRetornaPadraoVazio() throws Exception {
+        mvc.perform(get("/api/tenants/" + TENANT + "/transparency"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.intro", is("")))
+                .andExpect(jsonPath("$.documents", org.hamcrest.Matchers.hasSize(0)));
+    }
+
+    @Test
+    void adminSalvaERecuperaTransparencia() throws Exception {
+        String token = login();
+
+        String body = """
+                {
+                  "intro": "Consulte nossos relatórios.",
+                  "documents": [
+                    { "title": "Relatório 2025", "description": "Prestação de contas.", "tag": "RELATÓRIO", "url": "https://x/r.pdf" },
+                    { "title": "Estatuto", "description": "Documento constitutivo.", "tag": "INSTITUCIONAL", "url": null }
+                  ]
+                }
+                """;
+
+        mvc.perform(put("/api/admin/transparency")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.documents", org.hamcrest.Matchers.hasSize(2)));
+
+        mvc.perform(get("/api/tenants/" + TENANT + "/transparency"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.intro", is("Consulte nossos relatórios.")))
+                .andExpect(jsonPath("$.documents[0].title", is("Relatório 2025")));
+    }
+
+    @Test
+    void salvarTransparenciaSemTokenRetorna401() throws Exception {
+        mvc.perform(put("/api/admin/transparency")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
 }
