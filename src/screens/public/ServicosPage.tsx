@@ -1,33 +1,49 @@
 'use client'
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { PageHeader } from '@/components/common/PageHeader'
 import { BlockRenderer } from '@/features/institucional/BlockRenderer'
 import { ContentIcon } from '@/components/common/Icon'
-import { getServicosContent } from '@/content/servicos'
-import { useSettingsVersion } from '@/hooks/useSettingsVersion'
+import { getDefaultServicosContent } from '@/content/servicos'
+import type { ServicosContent } from '@/content/servicos/types'
+import { tenantService } from '@/services/tenantService'
 
 /**
  * Atendimentos Prestados (aba Servicos), dirigido por dados por tenant.
  * Layout de pagina unica com indice de ancoras no topo e detalhe de cada servico.
- * Se o tenant nao tiver conteudo detalhado, exibe uma mensagem simples.
+ * Busca da API; usa o conteudo local como fallback.
  */
 export function ServicosPage() {
   const { theme } = useTheme()
-  const settingsVersion = useSettingsVersion()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const content = useMemo(() => getServicosContent(theme.tenant), [theme.tenant, settingsVersion])
+  const [content, setContent] = useState<ServicosContent | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!content) {
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    tenantService
+      .getPublicServices(theme.tenant)
+      .then((data) => {
+        if (active) setContent(data ?? getDefaultServicosContent(theme.tenant) ?? null)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [theme.tenant])
+
+  if (loading || !content) {
     return (
       <>
         <PageMeta title="Serviços" />
         <PageHeader title="Atendimentos Prestados" subtitle="Conheça os serviços oferecidos." />
         <div className="container-page py-16">
-          <p className="text-ink-muted">Conteúdo de serviços em breve.</p>
+          <p className="text-ink-muted">{loading ? 'Carregando...' : 'Conteúdo de serviços em breve.'}</p>
         </div>
       </>
     )

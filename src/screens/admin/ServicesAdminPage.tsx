@@ -1,15 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
-import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { ContentIcon, ICON_KEYS } from '@/components/common/Icon'
-import { localSettings } from '@/services/localSettings'
-import {
-  getServicosContent,
-  getDefaultServicosContent,
-} from '@/content/servicos'
+import { tenantService } from '@/services/tenantService'
 import type { ServicosContent, ServiceItem, ServiceArea } from '@/content/servicos/types'
 import type { ContentBlock } from '@/content/institucional/types'
 
@@ -51,11 +46,21 @@ const emptyService = (): ServiceItem => ({
 
 /** Admin > Servicos (versao simplificada): edita areas e servicos. */
 export function ServicesAdminPage() {
-  const { theme } = useTheme()
-  const [content, setContent] = useState<ServicosContent>(
-    () => getServicosContent(theme.tenant) ?? getDefaultServicosContent(theme.tenant) ?? { intro: [], areas: [] },
-  )
+  const [content, setContent] = useState<ServicosContent>({ intro: [], areas: [] })
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Carrega o conteudo de servicos do tenant autenticado.
+  useEffect(() => {
+    let active = true
+    tenantService.getAdminServices().then((data) => {
+      if (active && data) setContent(data)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const inputCls = 'mt-1 w-full rounded-theme border border-black/10 px-4 py-2.5 focus:border-primary'
 
@@ -88,7 +93,7 @@ export function ServicesAdminPage() {
     }))
   }
 
-  function save() {
+  async function save() {
     // Garante ids/ancoras coerentes com o titulo.
     const normalized: ServicosContent = {
       ...content,
@@ -98,16 +103,18 @@ export function ServicesAdminPage() {
         services: a.services.map((s) => ({ ...s, id: s.id || slugify(s.title) })),
       })),
     }
-    localSettings.set<ServicosContent>(theme.tenant, 'servicos', normalized)
-    setContent(normalized)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
-  function resetDefault() {
-    if (!confirm('Restaurar o conteúdo padrão de serviços? As personalizações locais serão apagadas.')) return
-    localSettings.clear(theme.tenant, 'servicos')
-    window.location.reload()
+    setSaving(true)
+    setError(null)
+    try {
+      const updated = await tenantService.updateAdminServices(normalized)
+      setContent(updated)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setError('Não foi possível salvar. Verifique os campos e sua conexão.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -118,14 +125,15 @@ export function ServicesAdminPage() {
           <h1 className="text-2xl font-bold text-ink">Serviços</h1>
           <p className="mt-1 text-ink-muted">Edite as áreas e os atendimentos exibidos na página de serviços.</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={resetDefault} className="btn-outline">Restaurar padrão</button>
-          <button onClick={save} className="btn-primary inline-flex items-center gap-1.5">
-            {saved && <Check className="h-4 w-4" aria-hidden />}
-            {saved ? 'Salvo' : 'Salvar'}
-          </button>
-        </div>
+        <button onClick={save} disabled={saving} className="btn-primary inline-flex items-center gap-1.5">
+          {saved && <Check className="h-4 w-4" aria-hidden />}
+          {saving ? 'Salvando...' : saved ? 'Salvo' : 'Salvar'}
+        </button>
       </div>
+
+      {error && (
+        <p className="mt-4 rounded-2xl bg-secondary/10 px-4 py-2 text-sm text-secondary-dark">{error}</p>
+      )}
 
       <div className="mt-8 max-w-3xl space-y-8">
         {content.areas.map((area, ai) => (

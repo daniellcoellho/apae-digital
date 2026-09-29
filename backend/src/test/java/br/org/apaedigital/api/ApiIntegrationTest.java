@@ -3,7 +3,14 @@ package br.org.apaedigital.api;
 import br.org.apaedigital.api.domain.Tenant;
 import br.org.apaedigital.api.domain.User;
 import br.org.apaedigital.api.domain.UserRole;
+import br.org.apaedigital.api.repository.EventRepository;
+import br.org.apaedigital.api.repository.NewsRepository;
+import br.org.apaedigital.api.repository.TenantDonationRepository;
+import br.org.apaedigital.api.repository.TenantHomeRepository;
 import br.org.apaedigital.api.repository.TenantRepository;
+import br.org.apaedigital.api.repository.TenantServicesRepository;
+import br.org.apaedigital.api.repository.TenantThemeRepository;
+import br.org.apaedigital.api.repository.TenantTransparencyRepository;
 import br.org.apaedigital.api.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +49,27 @@ class ApiIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private NewsRepository newsRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private TenantThemeRepository themeRepository;
+
+    @Autowired
+    private TenantDonationRepository donationRepository;
+
+    @Autowired
+    private TenantTransparencyRepository transparencyRepository;
+
+    @Autowired
+    private TenantHomeRepository homeRepository;
+
+    @Autowired
+    private TenantServicesRepository servicesRepository;
+
+    @Autowired
     private PasswordEncoder encoder;
 
     private static final String TENANT = "apiuna";
@@ -50,6 +78,14 @@ class ApiIntegrationTest {
 
     @BeforeEach
     void seed() {
+        // Limpa filhos antes do tenant (FK), garantindo isolamento entre testes.
+        newsRepository.deleteAll();
+        eventRepository.deleteAll();
+        themeRepository.deleteAll();
+        donationRepository.deleteAll();
+        transparencyRepository.deleteAll();
+        homeRepository.deleteAll();
+        servicesRepository.deleteAll();
         userRepository.deleteAll();
         tenantRepository.deleteAll();
         tenantRepository.save(new Tenant(TENANT, "APAE de Apiúna", "Apiúna - SC"));
@@ -446,5 +482,58 @@ class ApiIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType("application/json").content("{\"impact\":{}}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    // ---------- Serviços (Atendimentos) ----------
+
+    @Test
+    void servicosPublicoSemConteudoRetorna404() throws Exception {
+        mvc.perform(get("/api/tenants/" + TENANT + "/services"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void adminSalvaERecuperaServicos() throws Exception {
+        String token = login();
+
+        String body = """
+                {
+                  "intro": [ { "type": "paragraph", "text": "Proposta interdisciplinar." } ],
+                  "areas": [
+                    {
+                      "id": "saude", "title": "Área da saúde", "description": "Acompanhamento técnico.",
+                      "services": [
+                        {
+                          "id": "fisioterapia", "title": "Fisioterapia", "summary": "Autonomia.", "icon": "🧘",
+                          "blocks": [
+                            { "type": "paragraph", "text": "A fisioterapia previne e trata..." },
+                            { "type": "list", "title": "Modalidades", "variant": "check", "items": ["Convencional", "Pediatria"] }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """;
+
+        mvc.perform(put("/api/admin/services")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.areas[0].services[0].id", is("fisioterapia")));
+
+        // publico ve o conteudo, com os blocos preservados
+        mvc.perform(get("/api/tenants/" + TENANT + "/services"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.areas[0].title", is("Área da saúde")))
+                .andExpect(jsonPath("$.areas[0].services[0].blocks[1].type", is("list")))
+                .andExpect(jsonPath("$.areas[0].services[0].blocks[1].items", org.hamcrest.Matchers.hasSize(2)));
+    }
+
+    @Test
+    void salvarServicosSemTokenRetorna401() throws Exception {
+        mvc.perform(put("/api/admin/services")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
     }
 }

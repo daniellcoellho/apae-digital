@@ -70,7 +70,7 @@ demais ainda são salvos localmente no navegador (localStorage) no front.
 | Doação | ✅ | GET público + GET/PUT admin (chave PIX, contas) |
 | Transparência | ✅ | GET público + GET/PUT admin (documentos) |
 | Página inicial (hero + números) | ✅ | GET público + GET/PUT admin |
-| Serviços / Atendimentos | ⛔ roadmap | áreas e serviços (blocos) |
+| Serviços / Atendimentos | ✅ | GET público + GET/PUT admin (áreas + blocos) |
 | Institucional (Sobre) | ⛔ roadmap | subpáginas de blocos |
 
 O padrão (entidade → repositório → service → controller → DTO → testes) já está
@@ -149,6 +149,9 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | GET | `/api/tenants/{slug}/home` | 🔓 | Conteúdo da Home (hero + números) do tenant |
 | GET | `/api/admin/home` | 🔒 | Home do tenant autenticado |
 | PUT | `/api/admin/home` | 🔒 | Salva/atualiza a Home |
+| GET | `/api/tenants/{slug}/services` | 🔓 | Atendimentos prestados (áreas + serviços) |
+| GET | `/api/admin/services` | 🔒 | Serviços do tenant autenticado |
+| PUT | `/api/admin/services` | 🔒 | Salva/atualiza os serviços |
 
 Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
 `DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
@@ -168,6 +171,11 @@ breve"). O `PUT` faz *upsert*; `banks` ausente é normalizado para lista vazia.
 **Página inicial (Home):** `hero` (título/destaque/subtítulo/imagem/CTAs/card flutuante) +
 `impact` (rótulo/título/descrição + `stats[]`). Se não configurado, o GET retorna um
 **padrão** com o nome/cidade do tenant. O `PUT` faz *upsert*.
+
+**Serviços:** `intro` (blocos) + `areas[]` (cada uma com `services[]`). Cada serviço tem
+`id`, `title`, `summary`, `icon` e `blocks` — os **blocos** são conteúdo livre (paragraph,
+list, highlight, cards, people...), tratados como JSON genérico e definidos pelo front. Se
+não configurado, o GET retorna `404` (o front trata a ausência). O `PUT` faz *upsert*.
 
 > Exemplos completos de request/response de **todas** as rotas estão na collection do
 > Postman. Abaixo ficam só os principais para referência rápida.
@@ -312,6 +320,29 @@ Retorno paginado (formato `Paginated<T>` do front):
       { "value": 5400, "suffix": "+", "label": "Atendimentos realizados", "hint": "Terapias e avaliações em 2025" }
     ]
   }
+}
+```
+
+### Salvar serviços → `PUT /api/admin/services` 🔒
+
+```jsonc
+// request/response (ServicosContentDto). blocks são JSON livre por tipo.
+{
+  "intro": [ { "type": "paragraph", "text": "Proposta interdisciplinar." } ],
+  "areas": [
+    {
+      "id": "saude", "title": "Área da saúde", "description": "Acompanhamento técnico.",
+      "services": [
+        {
+          "id": "fisioterapia", "title": "Fisioterapia", "summary": "Autonomia.", "icon": "🧘",
+          "blocks": [
+            { "type": "paragraph", "text": "A fisioterapia previne e trata..." },
+            { "type": "list", "title": "Modalidades", "variant": "check", "items": ["Convencional", "Pediatria"] }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 

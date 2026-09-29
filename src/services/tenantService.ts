@@ -4,6 +4,7 @@ import { getThemeBySlug } from '@/theme/themes'
 import type { DonationInfo } from '@/content/doacoes'
 import type { TransparencyContent } from '@/content/transparencia'
 import type { HomeContent } from '@/content/home'
+import type { ServicosContent } from '@/content/servicos/types'
 
 /**
  * Servico de tema (identidade visual) White Label.
@@ -139,6 +140,37 @@ export const tenantService = {
   /** Cria/atualiza o conteudo da Home do tenant autenticado (admin). */
   async updateAdminHome(content: HomeContent): Promise<HomeContent> {
     const { data } = await http.put<HomeContent>('/admin/home', content)
+    return data
+  },
+
+  // ---- Servicos (atendimentos) ----
+
+  /**
+   * Conteudo publico de servicos do tenant.
+   * Retorna null em erro/404 (o chamador usa o fallback local).
+   */
+  async getPublicServices(slug: string): Promise<ServicosContent | null> {
+    try {
+      const { data } = await http.get<ServicosContent>(`/tenants/${slug}/services`)
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  /** Conteudo de servicos do tenant autenticado (admin). */
+  async getAdminServices(): Promise<ServicosContent | null> {
+    try {
+      const { data } = await http.get<ServicosContent>('/admin/services')
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  /** Cria/atualiza o conteudo de servicos do tenant autenticado (admin). */
+  async updateAdminServices(content: ServicosContent): Promise<ServicosContent> {
+    const { data } = await http.put<ServicosContent>('/admin/services', content)
     return data
   },
 }

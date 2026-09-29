@@ -396,6 +396,42 @@
           }
         }
       ]
+    },
+    {
+      "name": "Serviços (Atendimentos)",
+      "item": [
+        {
+          "name": "Serviços do tenant (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/tenants/{{tenant}}/services", "host": ["{{baseUrl}}"], "path": ["api", "tenants", "{{tenant}}", "services"] }
+          }
+        },
+        {
+          "name": "Serviços (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/services", "host": ["{{baseUrl}}"], "path": ["api", "admin", "services"] }
+          }
+        },
+        {
+          "name": "Salvar serviços (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/services", "host": ["{{baseUrl}}"], "path": ["api", "admin", "services"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intro\": [ { \"type\": \"paragraph\", \"text\": \"Proposta interdisciplinar.\" } ],\n  \"areas\": [\n    {\n      \"id\": \"saude\", \"title\": \"Area da saude\", \"description\": \"Acompanhamento tecnico.\",\n      \"services\": [\n        {\n          \"id\": \"fisioterapia\", \"title\": \"Fisioterapia\", \"summary\": \"Autonomia.\", \"icon\": \"F\",\n          \"blocks\": [\n            { \"type\": \"paragraph\", \"text\": \"A fisioterapia previne e trata...\" },\n            { \"type\": \"list\", \"title\": \"Modalidades\", \"variant\": \"check\", \"items\": [\"Convencional\", \"Pediatria\"] }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }
