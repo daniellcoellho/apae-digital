@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { Check, Heart } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
-import { localSettings } from '@/services/localSettings'
-import type { ThemeOverride } from '@/theme/resolveTheme'
+import { tenantService } from '@/services/tenantService'
+import type { BrandColors, BrandTheme } from '@/theme/theme.types'
 import { hexToRgbChannels, rgbChannelsToHex } from '@/theme/colorUtils'
 
 // Campos de cor editaveis (chave no BrandColors + rotulo)
-const COLOR_FIELDS: Array<{ key: keyof ThemeOverrideColors; label: string }> = [
+const COLOR_FIELDS: Array<{ key: keyof BrandColors; label: string }> = [
   { key: 'primary', label: 'Primária' },
   { key: 'primaryDark', label: 'Primária (escura)' },
   { key: 'secondary', label: 'Secundária (CTA)' },
@@ -20,41 +20,49 @@ const COLOR_FIELDS: Array<{ key: keyof ThemeOverrideColors; label: string }> = [
   { key: 'inkMuted', label: 'Texto suave' },
 ]
 
-type ThemeOverrideColors = NonNullable<ThemeOverride['colors']>
-
 /**
  * Admin > Identidade Visual (White Label).
- * Edita cores, logo, tipografia e raio, aplicando ao vivo e salvando localmente.
+ * Edita cores, logo, tipografia e raio, salvando na API (PUT /api/admin/theme).
  */
 export function BrandingPage() {
-  const { theme, refresh } = useTheme()
+  const { theme, applyServerTheme } = useTheme()
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Estado do formulario espelha o tema atual.
   const [name, setName] = useState(theme.name)
   const [city, setCity] = useState(theme.city)
   const [logoUrl, setLogoUrl] = useState(theme.logoUrl)
   const [radius, setRadius] = useState(theme.radius)
-  const [colors, setColors] = useState<ThemeOverrideColors>({ ...theme.colors })
+  const [colors, setColors] = useState<BrandColors>({ ...theme.colors })
 
-  function buildOverride(): ThemeOverride {
-    return { name, city, logoUrl, radius, colors }
+  /** Monta o BrandTheme completo (tema atual + campos editados no formulario). */
+  function buildTheme(): BrandTheme {
+    return {
+      ...theme,
+      name,
+      city,
+      logoUrl,
+      radius,
+      colors,
+    }
   }
 
-  // Aplica ao vivo (salva override + reaplica CSS vars via refresh)
-  function apply() {
-    localSettings.set<ThemeOverride>(theme.tenant, 'theme', buildOverride())
-    refresh()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
-  function resetToDefault() {
-    if (!confirm('Restaurar a identidade visual padrão? As personalizações locais serão apagadas.')) return
-    localSettings.clear(theme.tenant, 'theme')
-    refresh()
-    // recarrega o formulario com os valores padrao
-    window.location.reload()
+  // Salva na API e aplica o tema retornado pelo servidor.
+  async function apply() {
+    setSaving(true)
+    setError(null)
+    try {
+      const updated = await tenantService.updateAdminTheme(buildTheme())
+      applyServerTheme(updated)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setError('Não foi possível salvar. Verifique sua conexão e tente novamente.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -65,14 +73,15 @@ export function BrandingPage() {
           <h1 className="text-2xl font-bold text-ink">Identidade Visual</h1>
           <p className="mt-1 text-ink-muted">Personalize cores, logo e tipografia da sua APAE.</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={resetToDefault} className="btn-outline">Restaurar padrão</button>
-          <button onClick={apply} className="btn-primary inline-flex items-center gap-1.5">
-            {saved && <Check className="h-4 w-4" aria-hidden />}
-            {saved ? 'Aplicado' : 'Aplicar e salvar'}
-          </button>
-        </div>
+        <button onClick={apply} disabled={saving} className="btn-primary inline-flex items-center gap-1.5">
+          {saved && <Check className="h-4 w-4" aria-hidden />}
+          {saving ? 'Salvando...' : saved ? 'Salvo' : 'Salvar'}
+        </button>
       </div>
+
+      {error && (
+        <p className="mt-4 rounded-2xl bg-secondary/10 px-4 py-2 text-sm text-secondary-dark">{error}</p>
+      )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* Formulario */}
@@ -173,7 +182,7 @@ export function BrandingPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-ink-muted">
-            As mudanças são aplicadas ao site ao clicar em “Aplicar e salvar”.
+            As mudanças são aplicadas ao site ao clicar em “Salvar”.
           </p>
         </aside>
       </div>
