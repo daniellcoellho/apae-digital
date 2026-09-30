@@ -9,6 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 const adminNav = [
   { to: '/admin', label: 'Painel', exact: true },
   { to: '/admin/pagina-inicial', label: 'Página Inicial' },
+  { to: '/admin/sobre', label: 'Sobre' },
   { to: '/admin/noticias', label: 'Notícias' },
   { to: '/admin/eventos', label: 'Eventos' },
   { to: '/admin/servicos', label: 'Serviços' },

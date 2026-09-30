@@ -68,10 +68,15 @@ Enquanto o backend não estiver conectado, existe um **login de demonstração**
 - **E-mail:** `admin@apae.org`
 - **Senha:** `admin123`
 
-Módulos que ainda não têm API (tema, home, serviços, transparência, doação, institucional)
-salvam as edições no `localStorage` do navegador, por tenant. Quando a API desses módulos
-existir, troca-se a persistência local pelas chamadas de API (as telas continuam iguais).
-Notícias e Eventos já têm backend — ver [backend/README.md](../backend/README.md).
+Todos os módulos White Label (tema, home, serviços, transparência, doação e
+institucional/"Sobre"), além de notícias e eventos, já são servidos pela API do
+backend — cada tela do admin lê e grava via API, com fallback para o conteúdo local
+por tenant quando a API não responde. Ver [backend/README.md](../backend/README.md).
+
+O editor do **Sobre** (`/admin/sobre`) permite montar as subpáginas institucionais
+(Histórico, Diretoria, Convênios...) com blocos de conteúdo (parágrafo, subtítulo,
+lista, ficha chave/valor, pessoas, cards, destaque e pessoa em destaque), além de
+reordenar subpáginas e blocos.
 
 ---
 
@@ -167,7 +172,7 @@ Notícias e Eventos já têm backend — ver [backend/README.md](../backend/READ
 │   │
 │   ├── screens/                    # Componentes de tela (a UI de cada página)
 │   │   ├── public/                 # Home, Institucional, Serviços, Eventos, Notícias...
-│   │   ├── admin/                  # Dashboard, Login, Branding, Doação, Home/Serviços/Transparência admin
+│   │   ├── admin/                  # Dashboard, Login, Branding, Doação, Home/Sobre/Serviços/Transparência admin
 │   │   └── NotFoundPage.tsx
 │   │
 │   ├── components/                 # Componentes reutilizáveis

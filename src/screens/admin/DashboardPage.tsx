@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, FileText, Heart, Home, Newspaper, Palette, Puzzle } from 'lucide-react'
+import { BookOpen, Calendar, FileText, Heart, Home, Newspaper, Palette, Puzzle } from 'lucide-react'
 import { PageMeta } from '@/components/common/PageMeta'
 
 const panels = [
   { href: '/admin/pagina-inicial', icon: Home, title: 'Página Inicial', desc: 'Destaque principal e números de impacto.' },
+  { href: '/admin/sobre', icon: BookOpen, title: 'Sobre', desc: 'Subpáginas institucionais e blocos de conteúdo.' },
   { href: '/admin/noticias', icon: Newspaper, title: 'Notícias', desc: 'Cadastrar, editar e publicar notícias.' },
   { href: '/admin/eventos', icon: Calendar, title: 'Eventos', desc: 'Gerenciar a agenda de eventos.' },
   { href: '/admin/servicos', icon: Puzzle, title: 'Serviços', desc: 'Áreas e atendimentos prestados.' },
