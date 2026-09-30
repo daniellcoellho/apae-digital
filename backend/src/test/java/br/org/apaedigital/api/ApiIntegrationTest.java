@@ -7,6 +7,7 @@ import br.org.apaedigital.api.repository.EventRepository;
 import br.org.apaedigital.api.repository.NewsRepository;
 import br.org.apaedigital.api.repository.TenantDonationRepository;
 import br.org.apaedigital.api.repository.TenantHomeRepository;
+import br.org.apaedigital.api.repository.TenantInstitutionalRepository;
 import br.org.apaedigital.api.repository.TenantRepository;
 import br.org.apaedigital.api.repository.TenantServicesRepository;
 import br.org.apaedigital.api.repository.TenantThemeRepository;
@@ -70,6 +71,9 @@ class ApiIntegrationTest {
     private TenantServicesRepository servicesRepository;
 
     @Autowired
+    private TenantInstitutionalRepository institutionalRepository;
+
+    @Autowired
     private PasswordEncoder encoder;
 
     private static final String TENANT = "apiuna";
@@ -86,6 +90,7 @@ class ApiIntegrationTest {
         transparencyRepository.deleteAll();
         homeRepository.deleteAll();
         servicesRepository.deleteAll();
+        institutionalRepository.deleteAll();
         userRepository.deleteAll();
         tenantRepository.deleteAll();
         tenantRepository.save(new Tenant(TENANT, "APAE de Apiúna", "Apiúna - SC"));
@@ -533,6 +538,52 @@ class ApiIntegrationTest {
     @Test
     void salvarServicosSemTokenRetorna401() throws Exception {
         mvc.perform(put("/api/admin/services")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ---------- Institucional (Sobre) ----------
+
+    @Test
+    void institucionalPublicoSemConteudoRetornaListaVazia() throws Exception {
+        mvc.perform(get("/api/tenants/" + TENANT + "/institutional"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pages", org.hamcrest.Matchers.hasSize(0)));
+    }
+
+    @Test
+    void adminSalvaERecuperaInstitucionalOrdenado() throws Exception {
+        String token = login();
+
+        String body = """
+                {
+                  "pages": [
+                    { "slug": "convenios", "title": "Convênios", "subtitle": "Parcerias", "order": 3,
+                      "blocks": [ { "type": "list", "items": ["SUS", "Prefeitura"] } ] },
+                    { "slug": "historico", "title": "Histórico", "subtitle": "Nossa trajetória", "order": 1,
+                      "blocks": [ { "type": "paragraph", "text": "Fundada em 1994." } ] }
+                  ]
+                }
+                """;
+
+        mvc.perform(put("/api/admin/institutional")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                // ordenado por "order": historico (1) antes de convenios (3)
+                .andExpect(jsonPath("$.pages[0].slug", is("historico")))
+                .andExpect(jsonPath("$.pages[1].slug", is("convenios")));
+
+        mvc.perform(get("/api/tenants/" + TENANT + "/institutional"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pages[0].title", is("Histórico")))
+                .andExpect(jsonPath("$.pages[0].blocks[0].type", is("paragraph")))
+                .andExpect(jsonPath("$.pages[1].blocks[0].items", org.hamcrest.Matchers.hasSize(2)));
+    }
+
+    @Test
+    void salvarInstitucionalSemTokenRetorna401() throws Exception {
+        mvc.perform(put("/api/admin/institutional")
                         .contentType("application/json").content("{}"))
                 .andExpect(status().isUnauthorized());
     }

@@ -17,11 +17,11 @@ import { BlockRenderer } from '@/features/institucional/BlockRenderer'
  */
 export function InstitucionalPage({ slug }: { slug?: string }) {
   const { theme } = useTheme()
-  const { pages, getPage } = useInstitutional()
+  const { pages, getPage, loading } = useInstitutional()
   const router = useRouter()
 
   const page = slug ? getPage(slug) : undefined
-  const needsRedirect = pages.length > 0 && (!slug || !page)
+  const needsRedirect = !loading && pages.length > 0 && (!slug || !page)
 
   // Redireciona para a primeira subpagina quando slug ausente/invalido.
   useEffect(() => {
@@ -29,6 +29,19 @@ export function InstitucionalPage({ slug }: { slug?: string }) {
       router.replace(`/sobre/${pages[0].slug}`)
     }
   }, [needsRedirect, pages, router])
+
+  // Enquanto busca o conteudo
+  if (loading) {
+    return (
+      <>
+        <PageMeta title="Sobre" />
+        <PageHeader title="Sobre" subtitle={`Conheça a ${theme.name}.`} />
+        <div className="container-page py-16">
+          <p className="text-ink-muted">Carregando...</p>
+        </div>
+      </>
+    )
+  }
 
   // Sem conteudo cadastrado para este tenant
   if (pages.length === 0) {

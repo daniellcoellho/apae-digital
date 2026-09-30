@@ -432,6 +432,42 @@
           }
         }
       ]
+    },
+    {
+      "name": "Institucional (Sobre)",
+      "item": [
+        {
+          "name": "Institucional do tenant (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/tenants/{{tenant}}/institutional", "host": ["{{baseUrl}}"], "path": ["api", "tenants", "{{tenant}}", "institutional"] }
+          }
+        },
+        {
+          "name": "Institucional (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/institutional", "host": ["{{baseUrl}}"], "path": ["api", "admin", "institutional"] }
+          }
+        },
+        {
+          "name": "Salvar institucional (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/institutional", "host": ["{{baseUrl}}"], "path": ["api", "admin", "institutional"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pages\": [\n    {\n      \"slug\": \"historico\", \"title\": \"Historico\", \"subtitle\": \"Nossa trajetoria\", \"order\": 1,\n      \"blocks\": [ { \"type\": \"paragraph\", \"text\": \"Fundada em 1994...\" } ]\n    },\n    {\n      \"slug\": \"convenios\", \"title\": \"Convenios\", \"subtitle\": \"Parcerias\", \"order\": 2,\n      \"blocks\": [ { \"type\": \"list\", \"title\": \"Parceiros\", \"items\": [\"SUS\", \"Prefeitura\"] } ]\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

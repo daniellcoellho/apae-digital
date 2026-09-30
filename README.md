@@ -36,20 +36,20 @@ O repositório é um **monorepo** com duas aplicações:
 ## Status do projeto
 
 O frontend está completo (site + painel administrativo de todos os módulos). O backend
-cobre, por enquanto, **autenticação, notícias e eventos** — os demais módulos White Label
-ainda são editados no front e salvos localmente (localStorage), aguardando API.
+O frontend e o backend cobrem **todos os módulos**, com o admin persistindo via API e o
+site público consumindo os dados de cada APAE (tenant).
 
 | Módulo | Frontend | Backend (API) |
 |---|:--:|:--:|
 | Autenticação (JWT) | ✅ | ✅ |
 | Notícias | ✅ | ✅ |
 | Eventos | ✅ | ✅ |
-| Identidade visual (tema) | ✅ | ⛔ roadmap |
-| Página inicial (hero + números) | ✅ | ⛔ roadmap |
-| Serviços / Atendimentos | ✅ | ⛔ roadmap |
-| Transparência | ✅ | ⛔ roadmap |
-| Doação (PIX) | ✅ | ⛔ roadmap |
-| Institucional (Sobre) | ✅ | ⛔ roadmap |
+| Identidade visual (tema) | ✅ | ✅ |
+| Página inicial (hero + números) | ✅ | ✅ |
+| Serviços / Atendimentos | ✅ | ✅ |
+| Transparência | ✅ | ✅ |
+| Doação (PIX) | ✅ | ✅ |
+| Institucional (Sobre) | ✅ | ✅ |
 
 ---
 

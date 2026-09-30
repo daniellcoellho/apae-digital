@@ -5,6 +5,7 @@ import type { DonationInfo } from '@/content/doacoes'
 import type { TransparencyContent } from '@/content/transparencia'
 import type { HomeContent } from '@/content/home'
 import type { ServicosContent } from '@/content/servicos/types'
+import type { InstitutionalPage } from '@/content/institucional/types'
 
 /**
  * Servico de tema (identidade visual) White Label.
@@ -172,5 +173,37 @@ export const tenantService = {
   async updateAdminServices(content: ServicosContent): Promise<ServicosContent> {
     const { data } = await http.put<ServicosContent>('/admin/services', content)
     return data
+  },
+
+  // ---- Institucional (Sobre) ----
+  // O backend envolve a lista num objeto { pages: [...] }.
+
+  /**
+   * Subpaginas institucionais publicas do tenant (ordenadas por order).
+   * Retorna null em erro (o chamador usa o fallback local).
+   */
+  async getPublicInstitutional(slug: string): Promise<InstitutionalPage[] | null> {
+    try {
+      const { data } = await http.get<{ pages: InstitutionalPage[] }>(`/tenants/${slug}/institutional`)
+      return data.pages ?? []
+    } catch {
+      return null
+    }
+  },
+
+  /** Subpaginas institucionais do tenant autenticado (admin). */
+  async getAdminInstitutional(): Promise<InstitutionalPage[] | null> {
+    try {
+      const { data } = await http.get<{ pages: InstitutionalPage[] }>('/admin/institutional')
+      return data.pages ?? []
+    } catch {
+      return null
+    }
+  },
+
+  /** Cria/atualiza as subpaginas institucionais do tenant autenticado (admin). */
+  async updateAdminInstitutional(pages: InstitutionalPage[]): Promise<InstitutionalPage[]> {
+    const { data } = await http.put<{ pages: InstitutionalPage[] }>('/admin/institutional', { pages })
+    return data.pages ?? []
   },
 }

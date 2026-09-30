@@ -71,7 +71,7 @@ demais ainda são salvos localmente no navegador (localStorage) no front.
 | Transparência | ✅ | GET público + GET/PUT admin (documentos) |
 | Página inicial (hero + números) | ✅ | GET público + GET/PUT admin |
 | Serviços / Atendimentos | ✅ | GET público + GET/PUT admin (áreas + blocos) |
-| Institucional (Sobre) | ⛔ roadmap | subpáginas de blocos |
+| Institucional (Sobre) | ✅ | GET público + GET/PUT admin (subpáginas de blocos) |
 
 O padrão (entidade → repositório → service → controller → DTO → testes) já está
 estabelecido; adicionar os módulos do roadmap é repetir essa estrutura por tenant.
@@ -152,6 +152,9 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | GET | `/api/tenants/{slug}/services` | 🔓 | Atendimentos prestados (áreas + serviços) |
 | GET | `/api/admin/services` | 🔒 | Serviços do tenant autenticado |
 | PUT | `/api/admin/services` | 🔒 | Salva/atualiza os serviços |
+| GET | `/api/tenants/{slug}/institutional` | 🔓 | Conteúdo institucional ("Sobre") do tenant |
+| GET | `/api/admin/institutional` | 🔒 | Institucional do tenant autenticado |
+| PUT | `/api/admin/institutional` | 🔒 | Salva/atualiza o institucional |
 
 Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
 `DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
@@ -176,6 +179,10 @@ breve"). O `PUT` faz *upsert*; `banks` ausente é normalizado para lista vazia.
 `id`, `title`, `summary`, `icon` e `blocks` — os **blocos** são conteúdo livre (paragraph,
 list, highlight, cards, people...), tratados como JSON genérico e definidos pelo front. Se
 não configurado, o GET retorna `404` (o front trata a ausência). O `PUT` faz *upsert*.
+
+**Institucional ("Sobre"):** `pages[]` — cada subpágina tem `slug`, `title`, `subtitle`,
+`order` e `blocks` (JSON livre). O GET devolve as páginas **ordenadas por `order`** (lista
+vazia se não configurado). O `PUT` faz *upsert* da lista inteira e reordena.
 
 > Exemplos completos de request/response de **todas** as rotas estão na collection do
 > Postman. Abaixo ficam só os principais para referência rápida.
@@ -341,6 +348,24 @@ Retorno paginado (formato `Paginated<T>` do front):
           ]
         }
       ]
+    }
+  ]
+}
+```
+
+### Salvar institucional → `PUT /api/admin/institutional` 🔒
+
+```jsonc
+// request/response (InstitutionalContentDto). blocks são JSON livre por tipo.
+{
+  "pages": [
+    {
+      "slug": "historico", "title": "Histórico", "subtitle": "Nossa trajetória", "order": 1,
+      "blocks": [ { "type": "paragraph", "text": "Fundada em 1994..." } ]
+    },
+    {
+      "slug": "convenios", "title": "Convênios", "subtitle": "Parcerias", "order": 2,
+      "blocks": [ { "type": "list", "title": "Parceiros", "items": ["SUS", "Prefeitura"] } ]
     }
   ]
 }
