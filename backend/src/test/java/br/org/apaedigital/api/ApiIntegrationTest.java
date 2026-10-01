@@ -12,7 +12,9 @@ import br.org.apaedigital.api.repository.TenantRepository;
 import br.org.apaedigital.api.repository.TenantServicesRepository;
 import br.org.apaedigital.api.repository.TenantThemeRepository;
 import br.org.apaedigital.api.repository.TenantTransparencyRepository;
+import br.org.apaedigital.api.repository.UploadedFileRepository;
 import br.org.apaedigital.api.repository.UserRepository;
+import org.springframework.mock.web.MockMultipartFile;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -74,6 +77,9 @@ class ApiIntegrationTest {
     private TenantInstitutionalRepository institutionalRepository;
 
     @Autowired
+    private UploadedFileRepository uploadedFileRepository;
+
+    @Autowired
     private PasswordEncoder encoder;
 
     private static final String TENANT = "apiuna";
@@ -91,6 +97,7 @@ class ApiIntegrationTest {
         homeRepository.deleteAll();
         servicesRepository.deleteAll();
         institutionalRepository.deleteAll();
+        uploadedFileRepository.deleteAll();
         userRepository.deleteAll();
         tenantRepository.deleteAll();
         tenantRepository.save(new Tenant(TENANT, "APAE de Apiúna", "Apiúna - SC"));
@@ -586,5 +593,41 @@ class ApiIntegrationTest {
         mvc.perform(put("/api/admin/institutional")
                         .contentType("application/json").content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // ---------- Uploads ----------
+
+    @Test
+    void uploadImagemRetornaUrlPublica() throws Exception {
+        String token = login();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "logo.png", "image/png", new byte[]{1, 2, 3, 4});
+
+        mvc.perform(multipart("/api/admin/uploads")
+                        .file(file)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url", org.hamcrest.Matchers.startsWith("/uploads/" + TENANT + "/")))
+                .andExpect(jsonPath("$.contentType", is("image/png")))
+                .andExpect(jsonPath("$.size", is(4)));
+    }
+
+    @Test
+    void uploadSemTokenRetorna401() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "logo.png", "image/png", new byte[]{1, 2, 3, 4});
+        mvc.perform(multipart("/api/admin/uploads").file(file))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void uploadTipoNaoSuportadoRetorna400() throws Exception {
+        String token = login();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "app.exe", "application/octet-stream", new byte[]{1, 2});
+        mvc.perform(multipart("/api/admin/uploads")
+                        .file(file)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest());
     }
 }

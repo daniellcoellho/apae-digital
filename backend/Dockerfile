@@ -14,8 +14,11 @@ RUN mvn -B clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-# Usuario nao-root
-RUN addgroup -S app && adduser -S app -G app
+# Usuario nao-root. Cria o diretorio de uploads ja com dono "app":
+# um volume nomeado novo herda o dono/representacao desse mountpoint da imagem.
+RUN addgroup -S app && adduser -S app -G app \
+    && mkdir -p /app/uploads \
+    && chown -R app:app /app/uploads
 USER app
 
 COPY --from=build /app/target/*.jar app.jar

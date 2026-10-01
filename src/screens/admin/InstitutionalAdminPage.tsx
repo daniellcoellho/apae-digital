@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Check, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import { PageMeta } from '@/components/common/PageMeta'
+import { ImageUploadField } from '@/components/common/ImageUploadField'
 import { tenantService } from '@/services/tenantService'
 import type {
   CardsBlock,
@@ -430,12 +431,13 @@ function BlockEditor({
             placeholder="Observação (opcional)"
             className={smallInputCls + ' sm:col-span-2'}
           />
-          <input
-            value={b.photoUrl ?? ''}
-            onChange={(e) => onChange({ photoUrl: e.target.value } as Partial<PersonBlock>)}
-            placeholder="URL da foto (opcional)"
-            className={smallInputCls + ' sm:col-span-2'}
-          />
+          <div className="sm:col-span-2">
+            <ImageUploadField
+              label="Foto (opcional)"
+              value={b.photoUrl ?? ''}
+              onChange={(url) => onChange({ photoUrl: url } as Partial<PersonBlock>)}
+            />
+          </div>
         </div>
       )
     }

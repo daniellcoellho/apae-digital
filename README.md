@@ -50,6 +50,7 @@ site público consumindo os dados de cada APAE (tenant).
 | Transparência | ✅ | ✅ |
 | Doação (PIX) | ✅ | ✅ |
 | Institucional (Sobre) | ✅ | ✅ |
+| Upload de imagens/arquivos | ✅ | ✅ |
 
 ---
 
@@ -96,4 +97,4 @@ Credenciais de demonstração do painel: **admin@apae.org** / **admin123**.
 - [x] Backend: autenticação (JWT), notícias e eventos, com Docker e testes (JaCoCo ~88%)
 - [x] Backend de todos os módulos White Label (tema, home, serviços, transparência, doação, institucional)
 - [x] Front conectado à API real em todos os módulos (com fallback local por tenant)
-- [ ] Upload real de imagens/arquivos (hoje via URL)
+- [x] Upload real de imagens/arquivos (envio para o backend, servido em `/uploads/**`)

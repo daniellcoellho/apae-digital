@@ -10,7 +10,8 @@
     { "key": "accessToken", "value": "" },
     { "key": "refreshToken", "value": "" },
     { "key": "newsId", "value": "" },
-    { "key": "eventId", "value": "" }
+    { "key": "eventId", "value": "" },
+    { "key": "lastUploadUrl", "value": "" }
   ],
   "item": [
     {
@@ -465,6 +466,48 @@
               "mode": "raw",
               "raw": "{\n  \"pages\": [\n    {\n      \"slug\": \"historico\", \"title\": \"Historico\", \"subtitle\": \"Nossa trajetoria\", \"order\": 1,\n      \"blocks\": [ { \"type\": \"paragraph\", \"text\": \"Fundada em 1994...\" } ]\n    },\n    {\n      \"slug\": \"convenios\", \"title\": \"Convenios\", \"subtitle\": \"Parcerias\", \"order\": 2,\n      \"blocks\": [ { \"type\": \"list\", \"title\": \"Parceiros\", \"items\": [\"SUS\", \"Prefeitura\"] } ]\n    }\n  ]\n}"
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Enviar arquivo (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.url) pm.collectionVariables.set('lastUploadUrl', d.url);",
+                  "pm.test('upload ok', () => pm.response.code === 200);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/uploads", "host": ["{{baseUrl}}"], "path": ["api", "admin", "uploads"] },
+            "description": "Selecione um arquivo (imagem PNG/JPG/WEBP/GIF/SVG ou PDF, até 5 MB) no campo 'file'. A resposta traz a URL pública para gravar no campo de imagem/documento.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Baixar arquivo enviado (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}{{lastUploadUrl}}", "host": ["{{baseUrl}}{{lastUploadUrl}}"] },
+            "description": "Usa a URL salva pelo request de upload (variável lastUploadUrl)."
           }
         }
       ]

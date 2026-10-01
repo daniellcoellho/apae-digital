@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Check, Heart } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
+import { ImageUploadField } from '@/components/common/ImageUploadField'
 import { tenantService } from '@/services/tenantService'
 import type { BrandColors, BrandTheme } from '@/theme/theme.types'
 import { hexToRgbChannels, rgbChannelsToHex } from '@/theme/colorUtils'
@@ -98,10 +99,14 @@ export function BrandingPage() {
                 <span className="text-sm font-medium text-ink">Cidade / UF</span>
                 <input value={city} onChange={(e) => setCity(e.target.value)} className="mt-1 w-full rounded-theme border border-black/10 px-4 py-2.5 focus:border-primary" />
               </label>
-              <label className="block sm:col-span-2">
-                <span className="text-sm font-medium text-ink">Logotipo (URL)</span>
-                <input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="/tenants/.../logo.svg ou https://..." className="mt-1 w-full rounded-theme border border-black/10 px-4 py-2.5 focus:border-primary" />
-              </label>
+              <div className="sm:col-span-2">
+                <ImageUploadField
+                  label="Logotipo"
+                  value={logoUrl}
+                  onChange={setLogoUrl}
+                  hint="Envie o logo (PNG, SVG...) ou cole uma URL. Até 5 MB."
+                />
+              </div>
             </div>
           </section>
 

@@ -21,5 +21,10 @@ app:
     refresh-token-ttl-days: 7
   cors:
     allowed-origins: http://localhost:3000
+  uploads:
+    # Em teste, grava num diretorio temporario do SO para nao sujar o projeto.
+    dir: ${java.io.tmpdir}/apae-test-uploads
+    public-path: /uploads
+    max-file-size-bytes: 5242880
   seed:
     enabled: false

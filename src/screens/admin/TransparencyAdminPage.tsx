@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { PageMeta } from '@/components/common/PageMeta'
+import { ImageUploadField } from '@/components/common/ImageUploadField'
 import { tenantService } from '@/services/tenantService'
 import {
   type TransparencyContent,
@@ -121,10 +122,16 @@ export function TransparencyAdminPage() {
                     <span className="text-xs text-ink-muted">Categoria (tag)</span>
                     <input value={d.tag} onChange={(e) => setDoc(i, { tag: e.target.value })} placeholder="RELATÓRIO" className={inputCls} />
                   </label>
-                  <label className="block">
-                    <span className="text-xs text-ink-muted">Link do arquivo (URL)</span>
-                    <input value={d.url ?? ''} onChange={(e) => setDoc(i, { url: e.target.value })} placeholder="https://..." className={inputCls} />
-                  </label>
+                  <div className="block">
+                    <ImageUploadField
+                      label="Arquivo (PDF ou imagem)"
+                      value={d.url ?? ''}
+                      onChange={(url) => setDoc(i, { url })}
+                      allowPdf
+                      preview={false}
+                      hint="Envie o documento (PDF até 5 MB) ou cole uma URL."
+                    />
+                  </div>
                   <label className="block sm:col-span-2">
                     <span className="text-xs text-ink-muted">Descrição</span>
                     <input value={d.description} onChange={(e) => setDoc(i, { description: e.target.value })} className={inputCls} />

@@ -72,6 +72,7 @@ demais ainda são salvos localmente no navegador (localStorage) no front.
 | Página inicial (hero + números) | ✅ | GET público + GET/PUT admin |
 | Serviços / Atendimentos | ✅ | GET público + GET/PUT admin (áreas + blocos) |
 | Institucional (Sobre) | ✅ | GET público + GET/PUT admin (subpáginas de blocos) |
+| Upload de arquivos | ✅ | POST admin (imagens/PDF) → URL pública servida em `/uploads/**` |
 
 O padrão (entidade → repositório → service → controller → DTO → testes) já está
 estabelecido; adicionar os módulos do roadmap é repetir essa estrutura por tenant.
@@ -155,6 +156,8 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | GET | `/api/tenants/{slug}/institutional` | 🔓 | Conteúdo institucional ("Sobre") do tenant |
 | GET | `/api/admin/institutional` | 🔒 | Institucional do tenant autenticado |
 | PUT | `/api/admin/institutional` | 🔒 | Salva/atualiza o institucional |
+| POST | `/api/admin/uploads` | 🔒 | Envia um arquivo (`multipart/form-data`, campo `file`) e recebe a URL pública |
+| GET | `/uploads/{tenant}/{arquivo}` | 🔓 | Baixa um arquivo enviado (servido estaticamente) |
 
 Enums: notícia — categoria `CAMPANHAS·ESTRUTURA·PROJETOS·INSTITUCIONAL`, status
 `DRAFT·PUBLISHED`; evento — categoria `EVENTO·REUNIAO·CAMPANHA·OFICINA`.
@@ -183,6 +186,14 @@ não configurado, o GET retorna `404` (o front trata a ausência). O `PUT` faz *
 **Institucional ("Sobre"):** `pages[]` — cada subpágina tem `slug`, `title`, `subtitle`,
 `order` e `blocks` (JSON livre). O GET devolve as páginas **ordenadas por `order`** (lista
 vazia se não configurado). O `PUT` faz *upsert* da lista inteira e reordena.
+
+**Upload de arquivos:** `POST /api/admin/uploads` recebe `multipart/form-data` com o campo
+`file` e grava o binário em disco, **escopado por tenant** (`{app.uploads.dir}/{tenant}/{uuid}.ext`).
+Tipos aceitos: PNG, JPG, WEBP, GIF, SVG e PDF; tamanho máximo **5 MB** (ajustável via
+`APP_UPLOADS_MAX_FILE_SIZE_BYTES` e `spring.servlet.multipart.max-file-size`). A resposta traz a
+`url` pública (ex.: `/uploads/apiuna/ab12...png`), servida estaticamente em `/uploads/**`. Essa URL
+é o que as telas gravam nos campos de imagem/arquivo (logo, hero, foto de pessoa, documento). Erros:
+`400` tipo não suportado/arquivo vazio · `413` acima do tamanho máximo · `401` sem token.
 
 > Exemplos completos de request/response de **todas** as rotas estão na collection do
 > Postman. Abaixo ficam só os principais para referência rápida.
@@ -368,6 +379,27 @@ Retorno paginado (formato `Paginated<T>` do front):
       "blocks": [ { "type": "list", "title": "Parceiros", "items": ["SUS", "Prefeitura"] } ]
     }
   ]
+}
+```
+
+### Enviar arquivo → `POST /api/admin/uploads` 🔒
+
+Requisição `multipart/form-data` com o campo `file` (não é JSON). Exemplo com curl:
+
+```bash
+curl -X POST http://localhost:8080/api/admin/uploads \
+  -H "Authorization: Bearer <accessToken>" \
+  -F "file=@logo.png"
+```
+
+Resposta (`UploadResponse`):
+
+```jsonc
+{
+  "url": "/uploads/apiuna/ab12cd34ef56.png", // guarde esta URL no campo de imagem/arquivo
+  "fileName": "ab12cd34ef56.png",
+  "contentType": "image/png",
+  "size": 20480
 }
 ```
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
+import { ImageUploadField } from '@/components/common/ImageUploadField'
 import { tenantService } from '@/services/tenantService'
 import { getDefaultHomeContent, type HomeContent, type HomeStat } from '@/content/home'
 
@@ -102,13 +103,12 @@ export function HomeAdminPage() {
               <span className="text-sm font-medium text-ink">Subtítulo</span>
               <textarea rows={3} value={content.hero.subtitle} onChange={(e) => setHero('subtitle', e.target.value)} className={inputCls} />
             </label>
-            <label className="block">
-              <span className="text-sm font-medium text-ink">Imagem (URL)</span>
-              <input value={content.hero.imageUrl} onChange={(e) => setHero('imageUrl', e.target.value)} placeholder="https://..." className={inputCls} />
-            </label>
-            {content.hero.imageUrl && (
-              <img src={content.hero.imageUrl} alt="Prévia" className="mt-2 aspect-[4/3] w-48 rounded-2xl object-cover" />
-            )}
+            <ImageUploadField
+              label="Imagem do destaque"
+              value={content.hero.imageUrl}
+              onChange={(url) => setHero('imageUrl', url)}
+              hint="Imagem principal da home (JPG, PNG...). Até 5 MB."
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="text-sm font-medium text-ink">Botão principal</span>

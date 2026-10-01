@@ -78,6 +78,13 @@ O editor do **Sobre** (`/admin/sobre`) permite montar as subpáginas institucion
 lista, ficha chave/valor, pessoas, cards, destaque e pessoa em destaque), além de
 reordenar subpáginas e blocos.
 
+**Upload de arquivos:** campos de imagem/documento no admin (logo em Identidade Visual,
+imagem do destaque na Página Inicial, foto de pessoa no Sobre e documentos na
+Transparência) usam o componente `ImageUploadField`: envia o arquivo para o backend
+(`POST /api/admin/uploads`) e preenche a URL automaticamente, com prévia e opção de colar
+uma URL externa. Imagens e PDF até 5 MB; os arquivos ficam escopados por tenant e são
+servidos em `/uploads/**`.
+
 ---
 
 ## Telas

@@ -16,6 +16,10 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+  servlet:
+    multipart:
+      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:5MB}
+      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:6MB}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -29,6 +33,11 @@ app:
     refresh-token-ttl-days: ${APP_JWT_REFRESH_TTL:7}
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:3000}
+  uploads:
+    # Diretorio onde os arquivos enviados ficam gravados (em disco).
+    dir: ${APP_UPLOADS_DIR:uploads}
+    public-path: ${APP_UPLOADS_PUBLIC_PATH:/uploads}
+    max-file-size-bytes: ${APP_UPLOADS_MAX_FILE_SIZE_BYTES:5242880}
   seed:
     # Cria um admin inicial no primeiro start (apenas se nao existir).
     enabled: ${APP_SEED_ENABLED:true}
