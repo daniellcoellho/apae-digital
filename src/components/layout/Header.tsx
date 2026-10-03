@@ -31,15 +31,19 @@ export function Header() {
       <div className="container-page flex h-20 items-center justify-between gap-4">
         {/* Logo / Marca */}
         <Link href="/" className="flex items-center gap-3" aria-label={`${theme.name} - página inicial`}>
-          <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-primary">
-            <img
-              src={theme.logoUrl}
-              alt={`Logotipo ${theme.name}`}
-              className="h-11 w-11 object-cover"
-              onError={(e) => {
-                ;(e.currentTarget as HTMLImageElement).style.display = 'none'
-              }}
-            />
+          <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-contrast">
+            {theme.logoUrl ? (
+              <img
+                src={theme.logoUrl}
+                alt={`Logotipo ${theme.name}`}
+                className="h-11 w-11 object-cover"
+                onError={(e) => {
+                  ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                }}
+              />
+            ) : (
+              theme.name.charAt(0)
+            )}
           </span>
           <span className="leading-tight">
             <span className="block text-base font-extrabold text-ink">{theme.name}</span>

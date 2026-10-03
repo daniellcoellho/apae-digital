@@ -105,11 +105,13 @@ export function HomePage() {
     tenantService.getPublicServices(theme.tenant).then((data) => {
       if (active) setServicesContent(data)
     })
-    // Proximos eventos: de agora ate +90 dias.
-    const now = new Date()
-    const in90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000)
+    // Proximos eventos: do inicio de hoje (00:00) ate +90 dias — assim eventos
+    // de hoje que ja comecaram continuam aparecendo o dia todo.
+    const startOfToday = new Date()
+    startOfToday.setHours(0, 0, 0, 0)
+    const in90 = new Date(startOfToday.getTime() + 90 * 24 * 60 * 60 * 1000)
     eventService
-      .listByRange(now.toISOString(), in90.toISOString())
+      .listByRange(startOfToday.toISOString(), in90.toISOString())
       .then((data) => {
         if (active) setEvents(data)
       })

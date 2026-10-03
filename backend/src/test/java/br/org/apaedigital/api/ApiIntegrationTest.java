@@ -268,6 +268,55 @@ class ApiIntegrationTest {
                 .andExpect(jsonPath("$[0].title", is("Bingo Solidário")));
     }
 
+    @Test
+    void adminListaEditaEExcluiEvento() throws Exception {
+        String token = login();
+
+        String novo = """
+                {
+                  "title": "Reunião de pais",
+                  "description": "Encontro mensal",
+                  "location": "Auditório",
+                  "start": "2026-10-10T18:00:00Z",
+                  "end": null,
+                  "allDay": false,
+                  "category": "REUNIAO"
+                }
+                """;
+        String created = mvc.perform(post("/api/admin/events")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(novo))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String id = mapper.readTree(created).get("id").asText();
+
+        // lista admin inclui o evento criado
+        mvc.perform(get("/api/admin/events").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title", is("Reunião de pais")));
+
+        // lista admin sem token -> 401
+        mvc.perform(get("/api/admin/events"))
+                .andExpect(status().isUnauthorized());
+
+        // edita
+        String editado = novo.replace("Reunião de pais", "Reunião de pais (remarcada)");
+        mvc.perform(put("/api/admin/events/" + id)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(editado))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is("Reunião de pais (remarcada)")));
+
+        // exclui
+        mvc.perform(delete("/api/admin/events/" + id).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        // lista admin agora vazia
+        mvc.perform(get("/api/admin/events").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+    }
+
     // ---------- Tema (identidade visual) ----------
 
     @Test

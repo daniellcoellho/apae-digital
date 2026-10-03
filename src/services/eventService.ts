@@ -15,7 +15,12 @@ export const eventService = {
     return data
   },
 
-  // Admin
+  // Admin: lista todos os eventos do tenant autenticado (mais recentes primeiro)
+  async listAllAdmin(): Promise<CalendarEvent[]> {
+    const { data } = await http.get<CalendarEvent[]>('/admin/events')
+    return data
+  },
+
   async create(input: EventInput): Promise<CalendarEvent> {
     const { data } = await http.post<CalendarEvent>('/admin/events', input)
     return data

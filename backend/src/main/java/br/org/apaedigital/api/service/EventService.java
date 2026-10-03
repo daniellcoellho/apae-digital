@@ -38,6 +38,14 @@ public class EventService {
 
     // ---- Admin ----
 
+    @Transactional(readOnly = true)
+    public List<EventResponse> listAll(String tenant) {
+        return repository.findByTenantSlugOrderByStartDesc(tenant)
+                .stream()
+                .map(EventResponse::from)
+                .toList();
+    }
+
     @Transactional
     public EventResponse create(String tenant, EventRequest req) {
         CalendarEvent event = new CalendarEvent();

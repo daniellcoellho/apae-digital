@@ -164,7 +164,11 @@ export function BrandingPage() {
             {/* mini header */}
             <div className="flex items-center gap-2 bg-surface px-4 py-3">
               <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-primary text-[10px] font-bold text-primary-contrast">
-                <img src={logoUrl} alt="" className="h-8 w-8 object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+                {logoUrl ? (
+                  <img src={logoUrl} alt="" className="h-8 w-8 object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+                ) : (
+                  name.charAt(0)
+                )}
               </span>
               <span className="text-sm font-extrabold text-ink">{name}</span>
             </div>

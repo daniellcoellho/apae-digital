@@ -13,5 +13,7 @@ public interface EventRepository extends JpaRepository<CalendarEvent, UUID> {
     List<CalendarEvent> findByTenantSlugAndStartBetweenOrderByStartAsc(
             String tenantSlug, Instant start, Instant end);
 
+    List<CalendarEvent> findByTenantSlugOrderByStartDesc(String tenantSlug);
+
     Optional<CalendarEvent> findByTenantSlugAndId(String tenantSlug, UUID id);
 }

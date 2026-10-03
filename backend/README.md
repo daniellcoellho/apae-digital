@@ -135,6 +135,7 @@ Base URL: `http://localhost:8080`. Coluna **Auth**: 🔓 público · 🔒 requer
 | DELETE | `/api/admin/news/{id}` | 🔒 | Remove notícia |
 | GET | `/api/events?start&end` | 🔓 | Lista eventos no período (datas ISO-8601) |
 | GET | `/api/events/{id}` | 🔓 | Detalhe de um evento |
+| GET | `/api/admin/events` | 🔒 | Lista todos os eventos do tenant (mais recentes primeiro) |
 | POST | `/api/admin/events` | 🔒 | Cria evento |
 | PUT | `/api/admin/events/{id}` | 🔒 | Atualiza evento |
 | DELETE | `/api/admin/events/{id}` | 🔒 | Remove evento |

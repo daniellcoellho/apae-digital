@@ -203,6 +203,14 @@
       "name": "Eventos (admin)",
       "item": [
         {
+          "name": "Listar eventos (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/events", "host": ["{{baseUrl}}"], "path": ["api", "admin", "events"] }
+          }
+        },
+        {
           "name": "Criar evento",
           "event": [
             {
