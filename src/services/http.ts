@@ -4,12 +4,16 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import { tokenStorage } from './tokenStorage'
+import { resolveTenantSlug } from '@/theme/themes'
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api'
 
 /**
  * Instancia HTTP central da aplicacao.
  * - Injeta o Bearer token (JWT) em cada requisicao.
+ * - Injeta o header X-Tenant (resolvido pelo dominio/slug) para as rotas publicas
+ *   que dependem do tenant (noticias, eventos). Nas rotas admin o backend usa o
+ *   tenant do JWT, mas enviar o header nao atrapalha.
  * - Trata 401 tentando refresh; se falhar, limpa a sessao.
  */
 export const http: AxiosInstance = axios.create({
@@ -18,11 +22,16 @@ export const http: AxiosInstance = axios.create({
   timeout: 20000,
 })
 
-// Request: injeta Authorization
+// Request: injeta Authorization e X-Tenant
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = tokenStorage.getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  }
+  // Identifica o tenant atual (por subdominio em prod, ?tenant= em dev).
+  // So resolve no browser; no SSR nao ha window e o backend cai no default.
+  if (typeof window !== 'undefined') {
+    config.headers['X-Tenant'] = resolveTenantSlug()
   }
   return config
 })

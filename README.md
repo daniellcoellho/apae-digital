@@ -98,3 +98,28 @@ Credenciais de demonstração do painel: **admin@apae.org** / **admin123**.
 - [x] Backend de todos os módulos White Label (tema, home, serviços, transparência, doação, institucional)
 - [x] Front conectado à API real em todos os módulos (com fallback local por tenant)
 - [x] Upload real de imagens/arquivos (envio para o backend, servido em `/uploads/**`)
+- [x] Isolamento multi-tenant nas rotas públicas (header `X-Tenant` enviado pelo front)
+
+---
+
+## Deploy (Vercel + backend)
+
+O **frontend (Next.js)** vai na Vercel; o **backend (Spring Boot) + Postgres** ficam
+em um host com Docker (Railway, Render, Fly.io, uma VM, etc.) — a Vercel não roda Java.
+
+**Frontend na Vercel** — defina as variáveis de ambiente:
+
+| Variável | Dev | Produção/HML |
+|---|---|---|
+| `BACKEND_URL` | `http://localhost:8080` | URL pública do backend (ex.: `https://api.seudominio.com`) |
+| `NEXT_PUBLIC_API_BASE_URL` | `/api` | `/api` (passa pelo rewrite do Next) |
+| `NEXT_PUBLIC_DEFAULT_TENANT` | `apiuna` | slug padrão quando o domínio não resolve |
+
+Os rewrites do Next (`next.config.mjs`) encaminham `/api` e `/uploads` para o `BACKEND_URL`,
+evitando CORS. O backend precisa liberar o domínio da Vercel em `APP_CORS_ORIGINS`.
+
+**Multi-tenant:** o front resolve a APAE pelo subdomínio (`apiuna.seudominio.com.br`) e
+envia o header `X-Tenant` automaticamente. Em dev/localhost use `?tenant=slug` na URL.
+Adicionar uma nova APAE hoje é via `INSERT` no banco (tenant + usuário admin com hash
+BCrypt) — não requer alteração de código, desde que cada APAE use um e-mail de admin
+distinto.

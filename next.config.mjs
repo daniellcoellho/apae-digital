@@ -1,16 +1,20 @@
+// URL do backend Spring Boot. Em dev usa localhost; em producao/HML defina
+// BACKEND_URL (ex.: https://api.seudominio.com) nas variaveis de ambiente.
+const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
-    // Encaminha /api para o backend Spring Boot em dev.
+    // Encaminha /api e /uploads para o backend Spring Boot.
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
       {
         // Arquivos enviados (uploads) servidos pelo backend.
         source: '/uploads/:path*',
-        destination: 'http://localhost:8080/uploads/:path*',
+        destination: `${backendUrl}/uploads/:path*`,
       },
     ]
   },
