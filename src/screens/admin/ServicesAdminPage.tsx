@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Plus, Trash2 } from 'lucide-react'
 import { PageMeta } from '@/components/common/PageMeta'
 import { ContentIcon, ICON_KEYS } from '@/components/common/Icon'
 import { tenantService } from '@/services/tenantService'
@@ -44,19 +44,43 @@ const emptyService = (): ServiceItem => ({
   blocks: [],
 })
 
+const emptyArea = (): ServiceArea => ({
+  id: `area-${Date.now()}`,
+  title: '',
+  description: '',
+  services: [],
+})
+
 /** Admin > Servicos (versao simplificada): edita areas e servicos. */
 export function ServicesAdminPage() {
   const [content, setContent] = useState<ServicosContent>({ intro: [], areas: [] })
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Carrega o conteudo de servicos do tenant autenticado.
+  // Quando a APAE ainda nao configurou, a API responde 404 -> data null:
+  // mantemos o estado vazio e mostramos o empty-state (nao e erro).
   useEffect(() => {
     let active = true
-    tenantService.getAdminServices().then((data) => {
-      if (active && data) setContent(data)
-    })
+    tenantService
+      .getAdminServices()
+      .then((data) => {
+        if (active && data) {
+          // Normaliza o payload para evitar quebra no render (areas/servicos/blocos).
+          setContent({
+            intro: data.intro ?? [],
+            areas: (data.areas ?? []).map((a) => ({
+              ...a,
+              services: (a.services ?? []).map((s) => ({ ...s, blocks: s.blocks ?? [] })),
+            })),
+          })
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
     return () => {
       active = false
     }
@@ -66,6 +90,14 @@ export function ServicesAdminPage() {
 
   function updateArea(ai: number, patch: Partial<ServiceArea>) {
     setContent((c) => ({ ...c, areas: c.areas.map((a, i) => (i === ai ? { ...a, ...patch } : a)) }))
+  }
+
+  function addArea() {
+    setContent((c) => ({ ...c, areas: [...c.areas, emptyArea()] }))
+  }
+
+  function removeArea(ai: number) {
+    setContent((c) => ({ ...c, areas: c.areas.filter((_, i) => i !== ai) }))
   }
 
   function updateService(ai: number, si: number, patch: Partial<ServiceItem>) {
@@ -125,7 +157,7 @@ export function ServicesAdminPage() {
           <h1 className="text-2xl font-bold text-ink">Serviços</h1>
           <p className="mt-1 text-ink-muted">Edite as áreas e os atendimentos exibidos na página de serviços.</p>
         </div>
-        <button onClick={save} disabled={saving} className="btn-primary inline-flex items-center gap-1.5">
+        <button onClick={save} disabled={saving || loading} className="btn-primary inline-flex items-center gap-1.5">
           {saved && <Check className="h-4 w-4" aria-hidden />}
           {saving ? 'Salvando...' : saved ? 'Salvo' : 'Salvar'}
         </button>
@@ -135,22 +167,40 @@ export function ServicesAdminPage() {
         <p className="mt-4 rounded-2xl bg-secondary/10 px-4 py-2 text-sm text-secondary-dark">{error}</p>
       )}
 
+      {loading ? (
+        <p className="mt-8 text-ink-muted">Carregando...</p>
+      ) : (
       <div className="mt-8 max-w-3xl space-y-8">
+        {content.areas.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-black/10 px-4 py-8 text-center text-ink-muted">
+            Nenhuma área cadastrada. Adicione a primeira área para começar a montar os atendimentos.
+          </p>
+        )}
+
         {content.areas.map((area, ai) => (
           <section key={ai} className="card p-6">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-sm font-semibold text-ink">Nome da área</span>
-                <input value={area.title} onChange={(e) => updateArea(ai, { title: e.target.value })} className={inputCls} />
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-ink">Descrição da área</span>
-                <input value={area.description ?? ''} onChange={(e) => updateArea(ai, { description: e.target.value })} className={inputCls} />
-              </label>
+            <div className="flex items-start justify-between gap-3">
+              <div className="grid flex-1 gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-semibold text-ink">Nome da área</span>
+                  <input value={area.title} onChange={(e) => updateArea(ai, { title: e.target.value })} className={inputCls} />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-semibold text-ink">Descrição da área</span>
+                  <input value={area.description ?? ''} onChange={(e) => updateArea(ai, { description: e.target.value })} className={inputCls} />
+                </label>
+              </div>
+              <button
+                onClick={() => removeArea(ai)}
+                title="Remover área"
+                className="mt-6 rounded-lg p-2 text-secondary-dark hover:bg-secondary/10"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden />
+              </button>
             </div>
 
             <div className="mt-5 space-y-4">
-              {area.services.map((s, si) => (
+              {(area.services ?? []).map((s, si) => (
                 <div key={si} className="rounded-2xl border border-black/5 p-4">
                   <div className="grid gap-3 sm:grid-cols-[80px_1fr]">
                     <label className="block">
@@ -184,12 +234,12 @@ export function ServicesAdminPage() {
                     <span className="text-xs text-ink-muted">Descrição (separe parágrafos com linha em branco)</span>
                     <textarea
                       rows={5}
-                      defaultValue={paragraphsToText(s.blocks)}
-                      onChange={(e) => updateService(ai, si, { blocks: textToBlocks(e.target.value, s.blocks) })}
+                      defaultValue={paragraphsToText(s.blocks ?? [])}
+                      onChange={(e) => updateService(ai, si, { blocks: textToBlocks(e.target.value, s.blocks ?? []) })}
                       className={inputCls}
                     />
                   </label>
-                  {s.blocks.some((b) => b.type === 'list') && (
+                  {(s.blocks ?? []).some((b) => b.type === 'list') && (
                     <p className="mt-2 text-xs text-ink-muted">
                       Este serviço possui listas que são preservadas (edição de listas em breve).
                     </p>
@@ -206,7 +256,15 @@ export function ServicesAdminPage() {
             </div>
           </section>
         ))}
+
+        <button
+          onClick={addArea}
+          className="inline-flex items-center gap-1.5 rounded-theme border border-dashed border-primary/40 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/5"
+        >
+          <Plus className="h-4 w-4" aria-hidden /> Adicionar área
+        </button>
       </div>
+      )}
     </>
   )
 }

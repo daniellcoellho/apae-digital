@@ -20,5 +20,7 @@ export const tokenStorage = {
   clear(): void {
     localStorage.removeItem(ACCESS_KEY)
     localStorage.removeItem(REFRESH_KEY)
+    // Legado: remove resquicio do antigo modo mock, se existir.
+    localStorage.removeItem('apae.mockAuth')
   },
 }
