@@ -49,6 +49,34 @@ export const ICONS: Record<string, LucideIcon> = {
 
 export const ICON_KEYS = Object.keys(ICONS)
 
+/** Rotulos legiveis (pt-BR) para cada icone, usados nos seletores do admin. */
+export const ICON_LABELS: Record<string, string> = {
+  atividade: 'Atividade',
+  bebe: 'Bebê',
+  livro: 'Livro / Educação',
+  cerebro: 'Cérebro',
+  maleta: 'Trabalho / Maleta',
+  van: 'Transporte / Van',
+  olho: 'Visão',
+  formatura: 'Formatura',
+  mao: 'Mão',
+  maos: 'Mãos / Doação',
+  apoio: 'Apoio',
+  parceria: 'Parceria',
+  acolhimento: 'Acolhimento',
+  fala: 'Fala / Comunicação',
+  peca: 'Peça / Encaixe',
+  saude: 'Saúde',
+  alvo: 'Alvo / Meta',
+  pessoas: 'Pessoas',
+  ferramenta: 'Ferramenta',
+}
+
+/** Rotulo legivel de um icone (cai na chave se nao houver mapeamento). */
+export function iconLabel(key: string): string {
+  return ICON_LABELS[key] ?? key
+}
+
 export function ContentIcon({ name, className }: { name?: string; className?: string }) {
   if (!name) return null
   const Cmp = ICONS[name]

@@ -12,6 +12,30 @@ export interface HomeStat {
   hint: string
 }
 
+/** Faixa de doacao sugerida (ex.: "R$ 30/mes" -> "Materiais para uma oficina"). */
+export interface DonationTier {
+  icon: string
+  value: string
+  desc: string
+}
+
+/** Campanha em destaque na Home (barra de progresso). */
+export interface HomeCampaign {
+  title: string
+  raised: number
+  goal: number
+  donors: number
+}
+
+/** Secao de doacao da Home (texto + faixas + campanha opcional). */
+export interface HomeDonation {
+  label: string
+  title: string
+  description: string
+  tiers: DonationTier[]
+  campaign: HomeCampaign
+}
+
 export interface HomeContent {
   hero: {
     badge: string
@@ -30,6 +54,8 @@ export interface HomeContent {
     description: string
     stats: HomeStat[]
   }
+  /** Opcional para retrocompatibilidade com conteudo salvo antes desta secao. */
+  donation?: HomeDonation
 }
 
 const registry: Record<string, HomeContent> = {
@@ -59,7 +85,45 @@ const registry: Record<string, HomeContent> = {
         { value: 32, suffix: '', label: 'Anos de história', hint: 'Desde 1994 na comunidade' },
       ],
     },
+    donation: {
+      label: 'Doação',
+      title: 'Sua doação vira transporte, terapia e futuro',
+      description:
+        'A APAE é uma entidade sem fins lucrativos. Doações mensais garantem a continuidade dos atendimentos gratuitos e a manutenção da estrutura.',
+      tiers: [
+        { icon: 'peca', value: 'R$ 30/mês', desc: 'Materiais para uma oficina terapêutica' },
+        { icon: 'van', value: 'R$ 100/mês', desc: 'Transporte de um aluno por um mês' },
+        { icon: 'maos', value: 'R$ 250/mês', desc: 'Uma sessão semanal de fisioterapia' },
+      ],
+      campaign: {
+        title: 'Van acessível para o transporte dos alunos',
+        raised: 68400,
+        goal: 120000,
+        donors: 184,
+      },
+    },
   },
+}
+
+/** Secao de doacao padrao (usada como fallback quando o conteudo salvo nao a tem). */
+export function getDefaultDonation(): HomeDonation {
+  return {
+    label: 'Doação',
+    title: 'Sua doação vira transporte, terapia e futuro',
+    description:
+      'A APAE é uma entidade sem fins lucrativos. Doações mensais garantem a continuidade dos atendimentos gratuitos e a manutenção da estrutura.',
+    tiers: [
+      { icon: 'peca', value: 'R$ 30/mês', desc: 'Materiais para uma oficina terapêutica' },
+      { icon: 'van', value: 'R$ 100/mês', desc: 'Transporte de um aluno por um mês' },
+      { icon: 'maos', value: 'R$ 250/mês', desc: 'Uma sessão semanal de fisioterapia' },
+    ],
+    campaign: {
+      title: '',
+      raised: 0,
+      goal: 0,
+      donors: 0,
+    },
+  }
 }
 
 /** Fallback quando o tenant nao tem entrada propria. */

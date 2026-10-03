@@ -4,14 +4,11 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Briefcase,
-  Bus,
   Calendar,
   Clock,
   GraduationCap,
-  HandHeart,
   Heart,
   MapPin,
-  Puzzle,
   Sprout,
   Stethoscope,
   Users,
@@ -20,9 +17,11 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { CountUp } from '@/components/common/CountUp'
+import { ContentIcon } from '@/components/common/Icon'
 import { NEWS_CATEGORIES } from '@/features/news/categories'
 import type { NewsCategory } from '@/types'
-import { getDefaultHomeContent } from '@/content/home'
+import { getDefaultDonation, getDefaultHomeContent } from '@/content/home'
+import type { ServicosContent } from '@/content/servicos/types'
 import { tenantService } from '@/services/tenantService'
 
 // ---- Dados fixos das secoes ainda nao editaveis (noticias/agenda/servicos/doacao) ----
@@ -66,36 +65,27 @@ const upcomingEvents = [
   { day: '19', month: 'OUT', tag: 'PALESTRA', title: 'Rede de apoio às famílias', desc: 'Encontro com profissionais sobre direitos e cuidado.', time: '14h00', place: 'Auditório' },
 ]
 
-const services = [
+// Resumo de servicos exibido na home quando a APAE ainda nao cadastrou servicos.
+const fallbackServices = [
   { icon: GraduationCap, title: 'Atendimento educacional', desc: 'Escola especial e apoio pedagógico individualizado.' },
   { icon: Stethoscope, title: 'Saúde e reabilitação', desc: 'Fisioterapia, fonoaudiologia, psicologia e terapia ocupacional.' },
   { icon: Users, title: 'Assistência social', desc: 'Acolhimento das famílias e garantia de direitos.' },
   { icon: Briefcase, title: 'Inclusão produtiva', desc: 'Oficinas de trabalho, formação e geração de renda.' },
 ]
 
-const donationTiers = [
-  { icon: Puzzle, value: 'R$ 30/mês', desc: 'Materiais para uma oficina terapêutica' },
-  { icon: Bus, value: 'R$ 100/mês', desc: 'Transporte de um aluno por um mês' },
-  { icon: HandHeart, value: 'R$ 250/mês', desc: 'Uma sessão semanal de fisioterapia' },
-]
-
-const campaign = {
-  title: 'Van acessível para o transporte dos alunos',
-  raised: 68400,
-  goal: 120000,
-  donors: 184,
-  pix: '12.345.678/0001-90',
-}
-
 export function HomePage() {
   const { theme } = useTheme()
   // Estado inicial sincrono (default local) evita flash; busca a versao real da API apos montar.
   const [home, setHome] = useState(() => getDefaultHomeContent(theme.tenant))
+  const [servicesContent, setServicesContent] = useState<ServicosContent | null>(null)
 
   useEffect(() => {
     let active = true
     tenantService.getPublicHome(theme.tenant).then((data) => {
       if (active && data) setHome(data)
+    })
+    tenantService.getPublicServices(theme.tenant).then((data) => {
+      if (active) setServicesContent(data)
     })
     return () => {
       active = false
@@ -103,9 +93,21 @@ export function HomePage() {
   }, [theme.tenant])
 
   const { hero, impact } = home
+  const donation = home.donation ?? getDefaultDonation()
+  const campaign = donation.campaign
   const donationUrl = theme.donationUrl ?? '/doacoes'
-  const progress = Math.round((campaign.raised / campaign.goal) * 100)
+  const progress = campaign.goal > 0 ? Math.min(100, Math.round((campaign.raised / campaign.goal) * 100)) : 0
   const brl = (v: number) => v.toLocaleString('pt-BR')
+
+  // Resumo dos servicos para a home: usa o cadastro (primeiros servicos de cada area);
+  // se nao houver cadastro, cai no resumo padrao.
+  const homeServices = (() => {
+    const areas = servicesContent?.areas ?? []
+    const items = areas.flatMap((a) =>
+      (a.services ?? []).map((s) => ({ icon: s.icon, title: s.title, desc: s.summary ?? a.title })),
+    )
+    return items.slice(0, 4)
+  })()
 
   return (
     <>
@@ -283,15 +285,25 @@ export function HomePage() {
         <div className="container-page">
           <SectionHeading label="Serviços" title="Atendimento completo e gratuito" />
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {services.map((s) => (
-              <div key={s.title} className="card p-6">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
-                  <s.icon className="h-6 w-6" aria-hidden />
-                </div>
-                <h3 className="mt-4 font-extrabold text-ink">{s.title}</h3>
-                <p className="mt-2 text-sm text-ink-muted">{s.desc}</p>
-              </div>
-            ))}
+            {homeServices.length > 0
+              ? homeServices.map((s, i) => (
+                  <div key={i} className="card p-6">
+                    <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+                      <ContentIcon name={s.icon} className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-4 font-extrabold text-ink">{s.title}</h3>
+                    <p className="mt-2 text-sm text-ink-muted">{s.desc}</p>
+                  </div>
+                ))
+              : fallbackServices.map((s) => (
+                  <div key={s.title} className="card p-6">
+                    <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+                      <s.icon className="h-6 w-6" aria-hidden />
+                    </div>
+                    <h3 className="mt-4 font-extrabold text-ink">{s.title}</h3>
+                    <p className="mt-2 text-sm text-ink-muted">{s.desc}</p>
+                  </div>
+                ))}
           </div>
           <div className="mt-8">
             <Link href="/servicos" className="btn-outline">Conhecer todos os serviços →</Link>
@@ -305,14 +317,14 @@ export function HomePage() {
           <div>
             <SectionHeading
               light
-              label="Doação"
-              title="Sua doação vira transporte, terapia e futuro"
-              description={`A ${theme.name} é uma entidade sem fins lucrativos. Doações mensais garantem a continuidade dos atendimentos gratuitos e a manutenção da estrutura.`}
+              label={donation.label}
+              title={donation.title}
+              description={donation.description}
             />
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {donationTiers.map((t) => (
-                <div key={t.value} className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-                  <t.icon className="h-5 w-5" aria-hidden />
+              {donation.tiers.map((t, i) => (
+                <div key={i} className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+                  <ContentIcon name={t.icon} className="h-5 w-5" />
                   <p className="mt-2 font-extrabold">{t.value}</p>
                   <p className="mt-1 text-sm text-primary-contrast/80">{t.desc}</p>
                 </div>
@@ -320,28 +332,41 @@ export function HomePage() {
             </div>
           </div>
 
-          {/* Card de campanha */}
-          <div className="rounded-3xl bg-surface p-6 text-ink shadow-xl">
-            <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary">Campanha atual</p>
-            <h3 className="mt-2 text-xl font-extrabold">{campaign.title}</h3>
+          {/* Card de campanha (so aparece se houver campanha com titulo) */}
+          {campaign.title ? (
+            <div className="rounded-3xl bg-surface p-6 text-ink shadow-xl">
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary">Campanha atual</p>
+              <h3 className="mt-2 text-xl font-extrabold">{campaign.title}</h3>
 
-            <div className="mt-5 flex items-end justify-between">
-              <p className="text-2xl font-extrabold text-primary">R$ {brl(campaign.raised)}</p>
-              <p className="text-sm text-ink-muted">meta R$ {brl(campaign.goal)}</p>
-            </div>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-primary/10">
-              <div className="h-full rounded-full bg-gradient-to-r from-secondary to-secondary-dark" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="mt-2 text-sm text-ink-muted">{progress}% arrecadado com {campaign.donors} doadores</p>
+              <div className="mt-5 flex items-end justify-between">
+                <p className="text-2xl font-extrabold text-primary">R$ {brl(campaign.raised)}</p>
+                <p className="text-sm text-ink-muted">meta R$ {brl(campaign.goal)}</p>
+              </div>
+              <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-primary/10">
+                <div className="h-full rounded-full bg-gradient-to-r from-secondary to-secondary-dark" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="mt-2 text-sm text-ink-muted">{progress}% arrecadado com {campaign.donors} doadores</p>
 
-            <Link href={donationUrl} className="btn-secondary mt-6 flex w-full items-center justify-center gap-1.5 text-base">
-              <Heart className="h-4 w-4" aria-hidden />
-              Doar via PIX
-            </Link>
-            <p className="mt-3 text-center text-sm text-ink-muted">
-              Doe o valor que desejar por PIX ou transferência.
-            </p>
-          </div>
+              <Link href={donationUrl} className="btn-secondary mt-6 flex w-full items-center justify-center gap-1.5 text-base">
+                <Heart className="h-4 w-4" aria-hidden />
+                Doar via PIX
+              </Link>
+              <p className="mt-3 text-center text-sm text-ink-muted">
+                Doe o valor que desejar por PIX ou transferência.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center rounded-3xl bg-surface/10 p-6 text-center text-primary-contrast/80 backdrop-blur">
+              <div>
+                <Heart className="mx-auto h-8 w-8" aria-hidden />
+                <Link href={donationUrl} className="btn-secondary mt-4 inline-flex items-center justify-center gap-1.5 text-base">
+                  <Heart className="h-4 w-4" aria-hidden />
+                  Doar via PIX
+                </Link>
+                <p className="mt-3 text-sm">Doe o valor que desejar por PIX ou transferência.</p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </>

@@ -461,8 +461,15 @@ class ApiIntegrationTest {
                     "label": "Nosso impacto", "title": "Números que são histórias", "description": "Descrição.",
                     "stats": [
                       { "value": 312, "suffix": "", "label": "Pessoas atendidas", "hint": "Por ano" },
-                      { "value": 5400, "suffix": "+", "label": "Atendimentos", "hint": "Em 2025" }
+                      { "value": 5400, "suffix": "+", "label": "Atendimentos", "hint": "Em 2025" },
+                      { "value": 240, "suffix": "", "label": "Famílias", "hint": "Apoio contínuo" },
+                      { "value": 32, "suffix": "", "label": "Anos", "hint": "Desde 1994" }
                     ]
+                  },
+                  "donation": {
+                    "label": "Doação", "title": "Sua doação ajuda", "description": "Descrição.",
+                    "tiers": [ { "icon": "peca", "value": "R$ 30/mês", "desc": "Materiais" } ],
+                    "campaign": { "title": "Van acessível", "raised": 68400, "goal": 120000, "donors": 184 }
                   }
                 }
                 """;
@@ -471,12 +478,14 @@ class ApiIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType("application/json").content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.impact.stats", org.hamcrest.Matchers.hasSize(2)));
+                .andExpect(jsonPath("$.impact.stats", org.hamcrest.Matchers.hasSize(4)));
 
         mvc.perform(get("/api/tenants/" + TENANT + "/home"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hero.subtitle", is("Subtítulo.")))
-                .andExpect(jsonPath("$.impact.stats[1].suffix", is("+")));
+                .andExpect(jsonPath("$.impact.stats[1].suffix", is("+")))
+                .andExpect(jsonPath("$.donation.campaign.title", is("Van acessível")))
+                .andExpect(jsonPath("$.donation.tiers[0].value", is("R$ 30/mês")));
     }
 
     @Test

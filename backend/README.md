@@ -335,8 +335,22 @@ Retorno paginado (formato `Paginated<T>` do front):
     "description": "Atrás de cada número existe uma pessoa...",
     "stats": [
       { "value": 312, "suffix": "", "label": "Pessoas atendidas por ano", "hint": "Crianças, jovens e adultos" },
-      { "value": 5400, "suffix": "+", "label": "Atendimentos realizados", "hint": "Terapias e avaliações em 2025" }
+      { "value": 240, "suffix": "", "label": "Famílias acompanhadas", "hint": "Apoio contínuo" },
+      { "value": 5400, "suffix": "+", "label": "Atendimentos realizados", "hint": "Terapias e avaliações em 2025" },
+      { "value": 32, "suffix": "", "label": "Anos de história", "hint": "Desde 1994" }
     ]
+  },
+  // "donation" é opcional (retrocompatível). "stats" aceita a quantidade que a APAE quiser.
+  "donation": {
+    "label": "Doação",
+    "title": "Sua doação vira transporte, terapia e futuro",
+    "description": "A APAE é uma entidade sem fins lucrativos...",
+    "tiers": [
+      { "icon": "peca", "value": "R$ 30/mês", "desc": "Materiais para uma oficina" },
+      { "icon": "van", "value": "R$ 100/mês", "desc": "Transporte de um aluno" }
+    ],
+    // campaign com title vazio oculta o card de campanha na home
+    "campaign": { "title": "Van acessível", "raised": 68400, "goal": 120000, "donors": 184 }
   }
 }
 ```

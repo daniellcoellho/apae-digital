@@ -1,7 +1,10 @@
 package br.org.apaedigital.api.service;
 
 import br.org.apaedigital.api.domain.Tenant;
+import br.org.apaedigital.api.dto.home.HomeCampaignDto;
 import br.org.apaedigital.api.dto.home.HomeContentDto;
+import br.org.apaedigital.api.dto.home.HomeDonationDto;
+import br.org.apaedigital.api.dto.home.HomeDonationTierDto;
 import br.org.apaedigital.api.dto.home.HomeHeroDto;
 import br.org.apaedigital.api.dto.home.HomeImpactDto;
 import br.org.apaedigital.api.dto.home.HomeStatDto;
@@ -51,7 +54,10 @@ class HomeServiceTest {
                         "pessoas atendidas"),
                 new HomeImpactDto("Nosso impacto", "Números que são histórias", "Descrição.",
                         List.of(new HomeStatDto(312, "", "Pessoas atendidas", "Por ano"),
-                                new HomeStatDto(5400, "+", "Atendimentos", "Em 2025")))
+                                new HomeStatDto(5400, "+", "Atendimentos", "Em 2025"))),
+                new HomeDonationDto("Doação", "Sua doação ajuda", "Descrição da doação.",
+                        List.of(new HomeDonationTierDto("peca", "R$ 30/mês", "Materiais")),
+                        new HomeCampaignDto("Van acessível", 68400L, 120000L, 184))
         );
     }
 
@@ -87,6 +93,10 @@ class HomeServiceTest {
 
         assertThat(content.hero().subtitle()).isEqualTo("Subtítulo.");
         assertThat(content.impact().stats().get(1).suffix()).isEqualTo("+");
+        // Doacao e campanha persistidas e recuperadas.
+        assertThat(content.donation()).isNotNull();
+        assertThat(content.donation().campaign().title()).isEqualTo("Van acessível");
+        assertThat(content.donation().tiers()).hasSize(1);
     }
 
     @Test
@@ -95,7 +105,8 @@ class HomeServiceTest {
 
         HomeContentDto alterado = new HomeContentDto(
                 new HomeHeroDto("X", "Novo título", "destaque", "s", "", "d", "v", 100, "l"),
-                new HomeImpactDto("l", "t", "d", List.of()));
+                new HomeImpactDto("l", "t", "d", List.of()),
+                null);
         service.save(TENANT, alterado);
 
         assertThat(repository.count()).isEqualTo(1);

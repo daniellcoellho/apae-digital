@@ -1,12 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { PageMeta } from '@/components/common/PageMeta'
+import { Check, Plus, Trash2 } from 'lucide-react'
 import { ImageUploadField } from '@/components/common/ImageUploadField'
+import { ICON_KEYS, iconLabel } from '@/components/common/Icon'
 import { tenantService } from '@/services/tenantService'
-import { getDefaultHomeContent, type HomeContent, type HomeStat } from '@/content/home'
+import {
+  getDefaultDonation,
+  getDefaultHomeContent,
+  type DonationTier,
+  type HomeCampaign,
+  type HomeContent,
+  type HomeDonation,
+  type HomeStat,
+} from '@/content/home'
 
 /** Admin > Pagina Inicial: edita hero e numeros de impacto. */
 export function HomeAdminPage() {
@@ -45,6 +54,55 @@ export function HomeAdminPage() {
         stats: c.impact.stats.map((s, i) => (i === index ? { ...s, ...patch } : s)),
       },
     }))
+  }
+
+  function addStat() {
+    setContent((c) => ({
+      ...c,
+      impact: { ...c.impact, stats: [...c.impact.stats, { value: 0, suffix: '', label: '', hint: '' }] },
+    }))
+  }
+
+  function removeStat(index: number) {
+    setContent((c) => ({
+      ...c,
+      impact: { ...c.impact, stats: c.impact.stats.filter((_, i) => i !== index) },
+    }))
+  }
+
+  // ---- Doacao + campanha ----
+  const donation: HomeDonation = content.donation ?? getDefaultDonation()
+
+  function setDonation<K extends keyof HomeDonation>(key: K, value: HomeDonation[K]) {
+    setContent((c) => ({ ...c, donation: { ...(c.donation ?? getDefaultDonation()), [key]: value } }))
+  }
+
+  function setCampaign<K extends keyof HomeCampaign>(key: K, value: HomeCampaign[K]) {
+    setContent((c) => {
+      const d = c.donation ?? getDefaultDonation()
+      return { ...c, donation: { ...d, campaign: { ...d.campaign, [key]: value } } }
+    })
+  }
+
+  function setTier(index: number, patch: Partial<DonationTier>) {
+    setContent((c) => {
+      const d = c.donation ?? getDefaultDonation()
+      return { ...c, donation: { ...d, tiers: d.tiers.map((t, i) => (i === index ? { ...t, ...patch } : t)) } }
+    })
+  }
+
+  function addTier() {
+    setContent((c) => {
+      const d = c.donation ?? getDefaultDonation()
+      return { ...c, donation: { ...d, tiers: [...d.tiers, { icon: '', value: '', desc: '' }] } }
+    })
+  }
+
+  function removeTier(index: number) {
+    setContent((c) => {
+      const d = c.donation ?? getDefaultDonation()
+      return { ...c, donation: { ...d, tiers: d.tiers.filter((_, i) => i !== index) } }
+    })
   }
 
   async function save() {
@@ -152,7 +210,16 @@ export function HomeAdminPage() {
             <div className="space-y-3">
               {content.impact.stats.map((s, i) => (
                 <div key={i} className="rounded-2xl border border-black/5 p-4">
-                  <p className="text-sm font-semibold text-ink-muted">Número {i + 1}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-ink-muted">Número {i + 1}</p>
+                    <button
+                      onClick={() => removeStat(i)}
+                      title="Remover número"
+                      className="rounded-lg p-1.5 text-secondary-dark hover:bg-secondary/10"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
                   <div className="mt-2 grid gap-3 sm:grid-cols-4">
                     <label className="block">
                       <span className="text-xs text-ink-muted">Valor</span>
@@ -173,6 +240,102 @@ export function HomeAdminPage() {
                   </div>
                 </div>
               ))}
+
+              <button
+                onClick={addStat}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary"
+              >
+                <Plus className="h-4 w-4" aria-hidden /> Adicionar número
+              </button>
+              <p className="text-xs text-ink-muted">
+                A seção exibe os números em grade; o ideal é cadastrar ao menos 4.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Doacao + campanha */}
+        <section className="card p-6">
+          <h2 className="font-extrabold text-ink">Doação e campanha</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Textos da seção de doação da página inicial, as faixas sugeridas e a campanha em destaque.
+          </p>
+
+          <div className="mt-4 space-y-4">
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Rótulo da seção</span>
+              <input value={donation.label} onChange={(e) => setDonation('label', e.target.value)} className={inputCls} />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Título</span>
+              <input value={donation.title} onChange={(e) => setDonation('title', e.target.value)} className={inputCls} />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Descrição</span>
+              <textarea rows={2} value={donation.description} onChange={(e) => setDonation('description', e.target.value)} className={inputCls} />
+            </label>
+
+            {/* Faixas de doacao */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-ink">Faixas sugeridas</p>
+              {donation.tiers.map((t, i) => (
+                <div key={i} className="rounded-2xl border border-black/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-ink-muted">Faixa {i + 1}</p>
+                    <button onClick={() => removeTier(i)} title="Remover faixa" className="rounded-lg p-1.5 text-secondary-dark hover:bg-secondary/10">
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                  <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                    <label className="block">
+                      <span className="text-xs text-ink-muted">Ícone</span>
+                      <select value={t.icon} onChange={(e) => setTier(i, { icon: e.target.value })} className={inputCls}>
+                        <option value="">Sem ícone</option>
+                        {ICON_KEYS.map((key) => (
+                          <option key={key} value={key}>{iconLabel(key)}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-ink-muted">Valor (ex.: R$ 50/mês)</span>
+                      <input value={t.value} onChange={(e) => setTier(i, { value: e.target.value })} className={inputCls} />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-ink-muted">O que custeia</span>
+                      <input value={t.desc} onChange={(e) => setTier(i, { desc: e.target.value })} className={inputCls} />
+                    </label>
+                  </div>
+                </div>
+              ))}
+              <button onClick={addTier} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                <Plus className="h-4 w-4" aria-hidden /> Adicionar faixa
+              </button>
+            </div>
+
+            {/* Campanha */}
+            <div className="rounded-2xl border border-black/5 p-4">
+              <p className="text-sm font-semibold text-ink">Campanha em destaque</p>
+              <p className="text-xs text-ink-muted">Deixe o título em branco para ocultar a campanha na página inicial.</p>
+              <div className="mt-3 space-y-3">
+                <label className="block">
+                  <span className="text-xs text-ink-muted">Título da campanha</span>
+                  <input value={donation.campaign.title} onChange={(e) => setCampaign('title', e.target.value)} className={inputCls} />
+                </label>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="block">
+                    <span className="text-xs text-ink-muted">Arrecadado (R$)</span>
+                    <input type="number" value={donation.campaign.raised} onChange={(e) => setCampaign('raised', Number(e.target.value))} className={inputCls} />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-ink-muted">Meta (R$)</span>
+                    <input type="number" value={donation.campaign.goal} onChange={(e) => setCampaign('goal', Number(e.target.value))} className={inputCls} />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-ink-muted">Nº de doadores</span>
+                    <input type="number" value={donation.campaign.donors} onChange={(e) => setCampaign('donors', Number(e.target.value))} className={inputCls} />
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </section>

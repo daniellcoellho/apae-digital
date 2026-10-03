@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
  */
 public record HomeContentDto(
         @NotNull @Valid HomeHeroDto hero,
-        @NotNull @Valid HomeImpactDto impact
+        @NotNull @Valid HomeImpactDto impact,
+        @Valid HomeDonationDto donation
 ) {
 }

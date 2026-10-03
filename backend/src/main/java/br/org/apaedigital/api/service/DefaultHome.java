@@ -1,6 +1,9 @@
 package br.org.apaedigital.api.service;
 
+import br.org.apaedigital.api.dto.home.HomeCampaignDto;
 import br.org.apaedigital.api.dto.home.HomeContentDto;
+import br.org.apaedigital.api.dto.home.HomeDonationDto;
+import br.org.apaedigital.api.dto.home.HomeDonationTierDto;
 import br.org.apaedigital.api.dto.home.HomeHeroDto;
 import br.org.apaedigital.api.dto.home.HomeImpactDto;
 import br.org.apaedigital.api.dto.home.HomeStatDto;
@@ -39,6 +42,19 @@ public final class DefaultHome {
                 List.of()
         );
 
-        return new HomeContentDto(hero, impact);
+        HomeDonationDto donation = new HomeDonationDto(
+                "Doação",
+                "Sua doação vira transporte, terapia e futuro",
+                displayName + " é uma entidade sem fins lucrativos. Doações mensais garantem a continuidade "
+                        + "dos atendimentos gratuitos e a manutenção da estrutura.",
+                List.of(
+                        new HomeDonationTierDto("peca", "R$ 30/mês", "Materiais para uma oficina terapêutica"),
+                        new HomeDonationTierDto("van", "R$ 100/mês", "Transporte de um aluno por um mês"),
+                        new HomeDonationTierDto("maos", "R$ 250/mês", "Uma sessão semanal de fisioterapia")
+                ),
+                new HomeCampaignDto("", 0L, 0L, 0)
+        );
+
+        return new HomeContentDto(hero, impact, donation);
     }
 }

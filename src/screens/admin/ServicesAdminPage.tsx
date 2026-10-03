@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Check, Plus, Trash2 } from 'lucide-react'
 import { PageMeta } from '@/components/common/PageMeta'
-import { ContentIcon, ICON_KEYS } from '@/components/common/Icon'
+import { ContentIcon, ICON_KEYS, iconLabel } from '@/components/common/Icon'
 import { tenantService } from '@/services/tenantService'
 import type { ServicosContent, ServiceItem, ServiceArea } from '@/content/servicos/types'
 import type { ContentBlock } from '@/content/institucional/types'
@@ -216,7 +216,7 @@ export function ServicesAdminPage() {
                         >
                           <option value="">Sem ícone</option>
                           {ICON_KEYS.map((key) => (
-                            <option key={key} value={key}>{key}</option>
+                            <option key={key} value={key}>{iconLabel(key)}</option>
                           ))}
                         </select>
                       </div>
