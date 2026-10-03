@@ -19,10 +19,12 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { CountUp } from '@/components/common/CountUp'
 import { ContentIcon } from '@/components/common/Icon'
 import { NEWS_CATEGORIES } from '@/features/news/categories'
-import type { NewsCategory } from '@/types'
+import { EVENT_CATEGORIES } from '@/features/events/categories'
+import type { CalendarEvent, NewsCategory } from '@/types'
 import { getDefaultDonation, getDefaultHomeContent } from '@/content/home'
 import type { ServicosContent } from '@/content/servicos/types'
 import { tenantService } from '@/services/tenantService'
+import { eventService } from '@/services/eventService'
 
 // ---- Dados fixos das secoes ainda nao editaveis (noticias/agenda/servicos/doacao) ----
 
@@ -58,12 +60,27 @@ const sideNews = [
   },
 ]
 
-const upcomingEvents = [
-  { day: '12', month: 'SET', tag: 'ARRECADAÇÃO', title: 'Bingo Solidário da APAE', desc: 'Cartelas antecipadas na secretaria. Toda a renda vai para o transporte dos alunos.', time: '19h00', place: 'Salão Paroquial — Centro' },
-  { day: '21', month: 'SET', tag: 'MOBILIZAÇÃO', title: 'Dia Nacional da Luta da Pessoa com Deficiência', desc: 'Caminhada, apresentações dos alunos e roda de conversa aberta à comunidade.', time: '09h00', place: 'Praça Central' },
-  { day: '04', month: 'OUT', tag: 'FEIRA', title: 'Feira de produtos das oficinas', desc: 'Artesanato, horta e panificação produzidos pelos jovens em formação.', time: '08h00 às 14h00', place: 'Sede da APAE' },
-  { day: '19', month: 'OUT', tag: 'PALESTRA', title: 'Rede de apoio às famílias', desc: 'Encontro com profissionais sobre direitos e cuidado.', time: '14h00', place: 'Auditório' },
-]
+const MONTHS_PT = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
+
+/** Converte um evento da API para o formato do card da agenda na home. */
+function toAgendaCard(e: CalendarEvent) {
+  const d = new Date(e.start)
+  const cat = EVENT_CATEGORIES[e.category]
+  const time = e.allDay
+    ? 'Dia inteiro'
+    : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h')
+  return {
+    id: e.id,
+    day: String(d.getDate()).padStart(2, '0'),
+    month: MONTHS_PT[d.getMonth()],
+    tag: cat?.label ?? e.category,
+    tagClass: cat?.tag ?? 'bg-primary/10 text-primary',
+    title: e.title,
+    desc: e.description ?? '',
+    time,
+    place: e.location ?? '',
+  }
+}
 
 // Resumo de servicos exibido na home quando a APAE ainda nao cadastrou servicos.
 const fallbackServices = [
@@ -78,6 +95,7 @@ export function HomePage() {
   // Estado inicial sincrono (default local) evita flash; busca a versao real da API apos montar.
   const [home, setHome] = useState(() => getDefaultHomeContent(theme.tenant))
   const [servicesContent, setServicesContent] = useState<ServicosContent | null>(null)
+  const [events, setEvents] = useState<CalendarEvent[]>([])
 
   useEffect(() => {
     let active = true
@@ -87,10 +105,27 @@ export function HomePage() {
     tenantService.getPublicServices(theme.tenant).then((data) => {
       if (active) setServicesContent(data)
     })
+    // Proximos eventos: de agora ate +90 dias.
+    const now = new Date()
+    const in90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000)
+    eventService
+      .listByRange(now.toISOString(), in90.toISOString())
+      .then((data) => {
+        if (active) setEvents(data)
+      })
+      .catch(() => {
+        if (active) setEvents([])
+      })
     return () => {
       active = false
     }
   }, [theme.tenant])
+
+  // Proximos 4 eventos ordenados por data de inicio.
+  const upcomingEvents = [...events]
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    .slice(0, 4)
+    .map(toAgendaCard)
 
   const { hero, impact } = home
   const donation = home.donation ?? getDefaultDonation()
@@ -143,12 +178,14 @@ export function HomePage() {
           {/* Imagem + card flutuante de estatistica */}
           <div className="relative">
             <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-white/10 shadow-lg">
-              <img
-                src={hero.imageUrl}
-                alt="Atendimento na APAE"
-                className="h-full w-full object-cover"
-                onError={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = '0')}
-              />
+              {hero.imageUrl ? (
+                <img
+                  src={hero.imageUrl}
+                  alt="Atendimento na APAE"
+                  className="h-full w-full object-cover"
+                  onError={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = '0')}
+                />
+              ) : null}
             </div>
             <div className="absolute -bottom-6 left-6 max-w-[16rem] rounded-2xl bg-surface p-5 shadow-xl">
               <CountUp value={hero.floatingValue} className="text-3xl font-extrabold text-primary" />
@@ -251,33 +288,42 @@ export function HomePage() {
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {upcomingEvents.map((e) => (
-            <article key={e.title} className="card p-5">
-              <div className="flex items-start gap-3">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary text-primary-contrast">
-                  <span className="text-lg font-extrabold leading-none">{e.day}</span>
-                  <span className="text-[10px] font-semibold">{e.month}</span>
+        {upcomingEvents.length > 0 ? (
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {upcomingEvents.map((e) => (
+              <article key={e.id} className="card p-5">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary text-primary-contrast">
+                    <span className="text-lg font-extrabold leading-none">{e.day}</span>
+                    <span className="text-[10px] font-semibold">{e.month}</span>
+                  </div>
+                  <span className={`mt-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${e.tagClass}`}>
+                    {e.tag}
+                  </span>
                 </div>
-                <span className="mt-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                  {e.tag}
-                </span>
-              </div>
-              <h3 className="mt-4 font-extrabold leading-snug text-ink">{e.title}</h3>
-              <p className="mt-2 text-sm text-ink-muted">{e.desc}</p>
-              <ul className="mt-4 space-y-1 text-sm text-ink-muted">
-                <li className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" aria-hidden />
-                  {e.time}
-                </li>
-                <li className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" aria-hidden />
-                  {e.place}
-                </li>
-              </ul>
-            </article>
-          ))}
-        </div>
+                <h3 className="mt-4 font-extrabold leading-snug text-ink">{e.title}</h3>
+                {e.desc && <p className="mt-2 text-sm text-ink-muted">{e.desc}</p>}
+                <ul className="mt-4 space-y-1 text-sm text-ink-muted">
+                  <li className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" aria-hidden />
+                    {e.time}
+                  </li>
+                  {e.place && (
+                    <li className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" aria-hidden />
+                      {e.place}
+                    </li>
+                  )}
+                </ul>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-10 rounded-3xl border border-dashed border-black/10 p-10 text-center text-ink-muted">
+            Nenhum evento programado no momento. Acompanhe o{' '}
+            <Link href="/eventos" className="font-semibold text-primary">calendário completo</Link>.
+          </div>
+        )}
       </section>
 
       {/* ============ SERVICOS ============ */}
