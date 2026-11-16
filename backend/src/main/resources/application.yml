@@ -22,7 +22,7 @@ spring:
       max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:6MB}
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
 
 # Configuracoes da aplicacao (JWT, seed, CORS)
 app:
