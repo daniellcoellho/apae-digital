@@ -19,7 +19,9 @@ const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api'
 export const http: AxiosInstance = axios.create({
   baseURL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 20000,
+  // 60s: no plano gratuito o backend "dorme" e leva ~1 min para acordar. Com 20s
+  // a primeira chamada falhava e o site caia silenciosamente no conteudo local.
+  timeout: 60000,
 })
 
 // Request: injeta Authorization e X-Tenant

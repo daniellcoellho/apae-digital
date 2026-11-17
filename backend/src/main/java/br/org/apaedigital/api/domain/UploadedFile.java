@@ -6,12 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
 /**
- * Metadados de um arquivo enviado (upload). O binario fica em disco;
- * aqui guardamos o rastreio por tenant e a URL publica de acesso.
+ * Arquivo enviado (upload): metadados, URL publica e o conteudo binario.
+ * O binario fica no banco (coluna bytea) para sobreviver a hosts com disco efemero.
  */
 @Entity
 @Table(name = "uploaded_file")
@@ -42,17 +44,23 @@ public class UploadedFile {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
+    /** Conteudo do arquivo. Null em registros antigos, gravados apenas em disco. */
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "data", columnDefinition = "bytea")
+    private byte[] data;
+
     protected UploadedFile() {
     }
 
     public UploadedFile(String tenantSlug, String storedName, String originalName,
-                        String contentType, long sizeBytes, String url) {
+                        String contentType, long sizeBytes, String url, byte[] data) {
         this.tenantSlug = tenantSlug;
         this.storedName = storedName;
         this.originalName = originalName;
         this.contentType = contentType;
         this.sizeBytes = sizeBytes;
         this.url = url;
+        this.data = data;
     }
 
     public Long getId() {
@@ -85,5 +93,9 @@ public class UploadedFile {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public byte[] getData() {
+        return data;
     }
 }

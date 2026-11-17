@@ -4,6 +4,7 @@ import br.org.apaedigital.api.config.AppProperties;
 import br.org.apaedigital.api.domain.UploadedFile;
 import br.org.apaedigital.api.dto.upload.UploadResponse;
 import br.org.apaedigital.api.exception.BadRequestException;
+import br.org.apaedigital.api.exception.NotFoundException;
 import br.org.apaedigital.api.repository.UploadedFileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -13,13 +14,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Recebe arquivos (imagens e PDF), grava em disco por tenant e devolve a URL publica.
- * Valida tipo e tamanho; registra os metadados para rastreio.
+ * Recebe arquivos (imagens e PDF), grava o conteudo no banco e devolve a URL publica.
+ * Valida tipo e tamanho.
+ *
+ * <p>O binario fica no Postgres (e nao em disco) porque hosts gratuitos tem disco
+ * efemero. Registros antigos, sem conteudo no banco, ainda sao lidos do diretorio
+ * {@code app.uploads.dir} se o arquivo existir.</p>
  */
 @Service
 public class UploadService {
@@ -40,6 +44,10 @@ public class UploadService {
     public UploadService(UploadedFileRepository repository, AppProperties props) {
         this.repository = repository;
         this.props = props;
+    }
+
+    /** Conteudo de um arquivo pronto para ser servido. */
+    public record StoredFile(String contentType, byte[] data) {
     }
 
     /**
@@ -64,24 +72,15 @@ public class UploadService {
             throw new BadRequestException("Arquivo excede o tamanho máximo de " + (max / (1024 * 1024)) + " MB.");
         }
 
-        String safeTenant = sanitizeTenant(tenant);
-        String storedName = UUID.randomUUID().toString().replace("-", "") + "." + ext;
-
+        byte[] data;
         try {
-            Path tenantDir = baseDir().resolve(safeTenant);
-            Files.createDirectories(tenantDir);
-            Path target = tenantDir.resolve(storedName);
-            // Protecao contra path traversal: o alvo deve ficar dentro do diretorio do tenant.
-            if (!target.normalize().startsWith(tenantDir.normalize())) {
-                throw new BadRequestException("Caminho de arquivo inválido.");
-            }
-            try (var in = file.getInputStream()) {
-                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-            }
+            data = file.getBytes();
         } catch (IOException e) {
-            throw new BadRequestException("Não foi possível gravar o arquivo: " + e.getMessage());
+            throw new BadRequestException("Não foi possível ler o arquivo: " + e.getMessage());
         }
 
+        String safeTenant = sanitizeTenant(tenant);
+        String storedName = UUID.randomUUID().toString().replace("-", "") + "." + ext;
         String url = props.getUploads().getPublicPath() + "/" + safeTenant + "/" + storedName;
 
         UploadedFile record = new UploadedFile(
@@ -89,19 +88,46 @@ public class UploadService {
                 storedName,
                 StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename()),
                 contentType,
-                file.getSize(),
-                url
+                data.length,
+                url,
+                data
         );
         repository.save(record);
 
-        return new UploadResponse(url, storedName, contentType, file.getSize());
+        return new UploadResponse(url, storedName, contentType, data.length);
     }
 
-    private Path baseDir() {
-        return Paths.get(props.getUploads().getDir()).toAbsolutePath().normalize();
+    /**
+     * Busca um arquivo pelo segmento de tenant e nome gravado (como aparecem na URL publica).
+     *
+     * @throws NotFoundException se nao existir ou nao pertencer ao tenant informado
+     */
+    public StoredFile load(String tenantSegment, String storedName) {
+        UploadedFile record = repository.findByStoredName(storedName)
+                .filter(r -> sanitizeTenant(r.getTenantSlug()).equals(tenantSegment))
+                .orElseThrow(() -> new NotFoundException("Arquivo não encontrado."));
+
+        if (record.getData() != null) {
+            return new StoredFile(record.getContentType(), record.getData());
+        }
+        return new StoredFile(record.getContentType(), readLegacyFromDisk(tenantSegment, storedName));
     }
 
-    /** Mantem apenas caracteres seguros para nome de pasta. */
+    /** Compatibilidade: uploads feitos antes da V9 ficaram apenas em disco. */
+    private byte[] readLegacyFromDisk(String tenantSegment, String storedName) {
+        Path base = Paths.get(props.getUploads().getDir()).toAbsolutePath().normalize();
+        Path target = base.resolve(tenantSegment).resolve(storedName).normalize();
+        if (!target.startsWith(base) || !Files.isRegularFile(target)) {
+            throw new NotFoundException("Arquivo não encontrado.");
+        }
+        try {
+            return Files.readAllBytes(target);
+        } catch (IOException e) {
+            throw new NotFoundException("Arquivo não encontrado.");
+        }
+    }
+
+    /** Mantem apenas caracteres seguros para o segmento de tenant da URL. */
     private String sanitizeTenant(String tenant) {
         if (tenant == null || tenant.isBlank()) {
             return "default";

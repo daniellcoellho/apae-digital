@@ -24,4 +24,9 @@ USER app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
+# Sem perfil fixo: o banco vem de DB_URL/DB_USER/DB_PASSWORD (perfil default).
+# O docker-compose local ativa o perfil "docker" explicitamente.
+# JVM ajustada para instancias pequenas (512 MB, CPU fracionada) de planos gratuitos:
+# heap limitado a 300 MB (sobra para metaspace/threads), GC serial e JIT C1 para subir mais rapido.
+ENV JAVA_TOOL_OPTIONS="-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss512k"
 ENTRYPOINT ["java", "-Xmx300m", "-jar", "app.jar"]

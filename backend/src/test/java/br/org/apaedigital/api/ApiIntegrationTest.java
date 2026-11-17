@@ -33,6 +33,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.hamcrest.Matchers.is;
 
 @SpringBootTest
@@ -668,6 +670,41 @@ class ApiIntegrationTest {
                 .andExpect(jsonPath("$.url", org.hamcrest.Matchers.startsWith("/uploads/" + TENANT + "/")))
                 .andExpect(jsonPath("$.contentType", is("image/png")))
                 .andExpect(jsonPath("$.size", is(4)));
+    }
+
+    @Test
+    void arquivoEnviadoFicaDisponivelPublicamente() throws Exception {
+        String token = login();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "logo.png", "image/png", new byte[]{5, 6, 7});
+
+        String body = mvc.perform(multipart("/api/admin/uploads")
+                        .file(file)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String url = com.jayway.jsonpath.JsonPath.read(body, "$.url");
+
+        // Sem token: rota publica, servida a partir do banco.
+        mvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("max-age=31536000")))
+                .andExpect(content().bytes(new byte[]{5, 6, 7}));
+    }
+
+    @Test
+    void arquivoInexistenteRetorna404() throws Exception {
+        mvc.perform(get("/uploads/" + TENANT + "/naoexiste.png"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void healthLivenessEPublico() throws Exception {
+        mvc.perform(get("/actuator/health/liveness"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("UP")));
     }
 
     @Test

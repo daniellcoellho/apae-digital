@@ -41,6 +41,12 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Health check para o host (/actuator/health/liveness) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Validacao (Bean Validation) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

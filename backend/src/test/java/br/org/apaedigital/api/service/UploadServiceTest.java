@@ -1,16 +1,20 @@
 package br.org.apaedigital.api.service;
 
 import br.org.apaedigital.api.config.AppProperties;
+import br.org.apaedigital.api.domain.UploadedFile;
 import br.org.apaedigital.api.dto.upload.UploadResponse;
 import br.org.apaedigital.api.exception.BadRequestException;
+import br.org.apaedigital.api.exception.NotFoundException;
 import br.org.apaedigital.api.repository.UploadedFileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,17 +51,60 @@ class UploadServiceTest {
     }
 
     @Test
-    void gravaImagemEDevolveUrlComTenant() throws Exception {
+    void gravaImagemNoBancoEDevolveUrlComTenant() {
         UploadResponse res = service.store(TENANT, png(new byte[]{1, 2, 3, 4}));
 
         assertThat(res.url()).startsWith("/uploads/apiuna/").endsWith(".png");
         assertThat(res.contentType()).isEqualTo("image/png");
         assertThat(res.size()).isEqualTo(4);
 
-        // O arquivo foi realmente gravado em disco.
-        Path stored = tempDir.resolve("apiuna").resolve(res.fileName());
-        assertThat(Files.exists(stored)).isTrue();
-        verify(repository).save(any());
+        // O conteudo vai para o banco (disco efemero em hosts gratuitos)...
+        ArgumentCaptor<UploadedFile> saved = ArgumentCaptor.forClass(UploadedFile.class);
+        verify(repository).save(saved.capture());
+        assertThat(saved.getValue().getData()).containsExactly(1, 2, 3, 4);
+        assertThat(saved.getValue().getStoredName()).isEqualTo(res.fileName());
+        // ...e nada e gravado em disco.
+        assertThat(tempDir.resolve("apiuna")).doesNotExist();
+    }
+
+    @Test
+    void carregaArquivoDoBanco() {
+        UploadedFile record = new UploadedFile(TENANT, "abc.png", "foto.png", "image/png", 2,
+                "/uploads/apiuna/abc.png", new byte[]{9, 8});
+        when(repository.findByStoredName("abc.png")).thenReturn(Optional.of(record));
+
+        UploadService.StoredFile file = service.load("apiuna", "abc.png");
+
+        assertThat(file.contentType()).isEqualTo("image/png");
+        assertThat(file.data()).containsExactly(9, 8);
+    }
+
+    @Test
+    void carregaUploadAntigoDoDisco() throws Exception {
+        Files.createDirectories(tempDir.resolve("apiuna"));
+        Files.write(tempDir.resolve("apiuna").resolve("old.png"), new byte[]{7});
+        UploadedFile legacy = new UploadedFile(TENANT, "old.png", "old.png", "image/png", 1,
+                "/uploads/apiuna/old.png", null);
+        when(repository.findByStoredName("old.png")).thenReturn(Optional.of(legacy));
+
+        assertThat(service.load("apiuna", "old.png").data()).containsExactly(7);
+    }
+
+    @Test
+    void naoEntregaArquivoDeOutroTenant() {
+        UploadedFile record = new UploadedFile("outra", "abc.png", "foto.png", "image/png", 1,
+                "/uploads/outra/abc.png", new byte[]{1});
+        when(repository.findByStoredName("abc.png")).thenReturn(Optional.of(record));
+
+        assertThatThrownBy(() -> service.load("apiuna", "abc.png"))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void arquivoInexistenteDaNotFound() {
+        when(repository.findByStoredName("nada.png")).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.load("apiuna", "nada.png"))
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test

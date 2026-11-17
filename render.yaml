@@ -1,0 +1,42 @@
+# Blueprint do Render: sobe a API Spring Boot (pasta backend/) no plano gratuito.
+# Render > New > Blueprint > selecione este repositorio. Passo a passo em docs/deploy.md.
+#
+# O banco NAO fica no Render (o Postgres gratuito de la expira); use o Neon e
+# preencha DB_URL/DB_USER/DB_PASSWORD quando o Render pedir.
+services:
+  - type: web
+    name: apae-digital-api
+    runtime: docker
+    plan: free
+    # Virginia: regiao mais proxima do Brasil. Crie o banco Neon em AWS us-east-1.
+    region: virginia
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    # Liveness nao consulta o banco: nao acorda o Neon a cada verificacao.
+    healthCheckPath: /actuator/health/liveness
+    autoDeploy: true
+    # So redeploya quando o backend muda (alteracoes no front ficam so na Vercel).
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      # Ex.: jdbc:postgresql://ep-xxxx.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Gerado pelo Render (string aleatoria longa, >= 32 bytes).
+      - key: APP_JWT_SECRET
+        generateValue: true
+      # Dominio(s) do front, separados por virgula. Ex.: https://apae-digital.vercel.app
+      - key: APP_CORS_ORIGINS
+        sync: false
+      # Admin criado no primeiro start. Troque a senha padrao!
+      - key: APP_SEED_TENANT
+        value: apiuna
+      - key: APP_SEED_ADMIN_EMAIL
+        sync: false
+      - key: APP_SEED_ADMIN_PASSWORD
+        sync: false

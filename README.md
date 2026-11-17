@@ -9,7 +9,7 @@ O repositório é um **monorepo** com duas aplicações:
 
 | Parte | Tecnologia | Documentação |
 |---|---|---|
-| **Frontend** (site público + painel admin) | Next.js 15 · React 18 · TypeScript · Tailwind | [`docs/frontend.md`](docs/frontend.md) |
+| **Frontend** (site público + painel admin) | Next.js 16 · React 19 · TypeScript · Tailwind | [`docs/frontend.md`](docs/frontend.md) |
 | **Backend** (API REST) | Java 21 · Spring Boot 3 · JPA · PostgreSQL · JWT | [`backend/README.md`](backend/README.md) |
 
 ---
@@ -97,26 +97,27 @@ Credenciais de demonstração do painel: **admin@apae.org** / **admin123**.
 - [x] Backend: autenticação (JWT), notícias e eventos, com Docker e testes (JaCoCo ~88%)
 - [x] Backend de todos os módulos White Label (tema, home, serviços, transparência, doação, institucional)
 - [x] Front conectado à API real em todos os módulos (com fallback local por tenant)
-- [x] Upload real de imagens/arquivos (envio para o backend, servido em `/uploads/**`)
+- [x] Upload real de imagens/arquivos (gravados no banco, servidos em `/uploads/**`)
+- [x] Deploy gratuito documentado (Vercel + Render + Neon)
 - [x] Isolamento multi-tenant nas rotas públicas (header `X-Tenant` enviado pelo front)
 
 ---
 
-## Deploy (Vercel + backend)
+## Deploy (Vercel + Render + Neon)
 
-O **frontend (Next.js)** vai na Vercel; o **backend (Spring Boot) + Postgres** ficam
-em um host com Docker (Railway, Render, Fly.io, uma VM, etc.) — a Vercel não roda Java.
+Gratuito: **frontend** na Vercel, **API** no Render (Docker, via [`render.yaml`](render.yaml))
+e **Postgres** no Neon. Passo a passo completo em [`docs/deploy.md`](docs/deploy.md).
 
-**Frontend na Vercel** — defina as variáveis de ambiente:
+**Frontend na Vercel** — variáveis de ambiente:
 
 | Variável | Dev | Produção/HML |
 |---|---|---|
-| `BACKEND_URL` | `http://localhost:8080` | URL pública do backend (ex.: `https://api.seudominio.com`) |
+| `BACKEND_URL` | `http://localhost:8080` | URL pública do backend (ex.: `https://apae-digital-api.onrender.com`) |
 | `NEXT_PUBLIC_API_BASE_URL` | `/api` | `/api` (passa pelo rewrite do Next) |
 | `NEXT_PUBLIC_DEFAULT_TENANT` | `apiuna` | slug padrão quando o domínio não resolve |
 
 Os rewrites do Next (`next.config.mjs`) encaminham `/api` e `/uploads` para o `BACKEND_URL`,
-evitando CORS. O backend precisa liberar o domínio da Vercel em `APP_CORS_ORIGINS`.
+evitando CORS. `BACKEND_URL` é lida no build: ao mudá-la, faça redeploy na Vercel.
 
 **Multi-tenant:** o front resolve a APAE pelo subdomínio (`apiuna.seudominio.com.br`) e
 envia o header `X-Tenant` automaticamente. Em dev/localhost use `?tenant=slug` na URL.

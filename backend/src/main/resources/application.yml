@@ -6,6 +6,9 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/apae}
     username: ${DB_USER:apae}
     password: ${DB_PASSWORD:apae}
+    hikari:
+      # Planos gratuitos de Postgres (Neon etc.) limitam conexoes; 5 e suficiente.
+      maximum-pool-size: ${DB_POOL_SIZE:5}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,7 +25,21 @@ spring:
       max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:6MB}
 
 server:
+  # PORT e injetada por hosts como Render/Koyeb; SERVER_PORT para uso manual.
   port: ${PORT:${SERVER_PORT:8080}}
+
+# Health check: /actuator/health/liveness NAO consulta o banco (bom para pings de
+# keep-alive sem acordar o Postgres); /actuator/health/readiness verifica o banco.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
 
 # Configuracoes da aplicacao (JWT, seed, CORS)
 app:
@@ -34,7 +51,8 @@ app:
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:3000}
   uploads:
-    # Diretorio onde os arquivos enviados ficam gravados (em disco).
+    # Os arquivos ficam no banco. Este diretorio so e lido para uploads antigos
+    # (anteriores a migration V9), que foram gravados em disco.
     dir: ${APP_UPLOADS_DIR:uploads}
     public-path: ${APP_UPLOADS_PUBLIC_PATH:/uploads}
     max-file-size-bytes: ${APP_UPLOADS_MAX_FILE_SIZE_BYTES:5242880}

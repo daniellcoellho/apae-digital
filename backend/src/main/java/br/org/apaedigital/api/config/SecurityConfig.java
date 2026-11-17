@@ -5,6 +5,7 @@ import br.org.apaedigital.api.exception.ApiError;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,7 +36,30 @@ public class SecurityConfig {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Arquivos enviados: publicos e imutaveis (nome = UUID). Cadeia propria para que o
+     * Spring Security nao sobrescreva o Cache-Control longo definido pelo controller.
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain uploadsFilterChain(HttpSecurity http) throws Exception {
+        String publicPath = props.getUploads().getPublicPath();
+        String pattern = (publicPath.endsWith("/") ? publicPath : publicPath + "/") + "**";
+        http
+                .securityMatcher(pattern)
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers.cacheControl(cache -> cache.disable()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, pattern).permitAll()
+                        .requestMatchers(HttpMethod.HEAD, pattern).permitAll()
+                        .anyRequest().denyAll()
+                );
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -52,8 +76,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tenants/*/home").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tenants/*/services").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tenants/*/institutional").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         // Admin exige autenticacao + papel
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "EDITOR")
                         .anyRequest().authenticated()

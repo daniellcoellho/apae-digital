@@ -87,7 +87,8 @@ Variáveis de ambiente (todas têm padrão para desenvolvimento):
 |---|---|---|
 | `DB_URL` | `jdbc:postgresql://localhost:5432/apae` | URL do banco (perfil default) |
 | `DB_USER` / `DB_PASSWORD` | `apae` / `apae` | Credenciais do banco |
-| `SERVER_PORT` | `8080` | Porta da API |
+| `PORT` / `SERVER_PORT` | `8080` | Porta da API (`PORT` é injetada por hosts como Render/Koyeb) |
+| `DB_POOL_SIZE` | `5` | Máximo de conexões no pool (planos gratuitos limitam conexões) |
 | `APP_JWT_SECRET` | (dev) | Segredo do JWT — **obrigatório em produção** (>= 32 bytes) |
 | `APP_JWT_ACCESS_TTL` | `60` | Validade do access token (minutos) |
 | `APP_JWT_REFRESH_TTL` | `7` | Validade do refresh token (dias) |
@@ -96,8 +97,12 @@ Variáveis de ambiente (todas têm padrão para desenvolvimento):
 | `APP_SEED_TENANT` | `apiuna` | Slug do tenant inicial |
 | `APP_SEED_ADMIN_EMAIL` / `APP_SEED_ADMIN_PASSWORD` | `admin@apae.org` / `admin123` | Admin inicial |
 
-**Perfis Spring:** `default` (API local → Postgres em `localhost`), `docker` (API no
-container → Postgres no serviço `db`), `test` (H2 em memória).
+**Perfis Spring:** `default` (Postgres via `DB_URL`; é o usado em produção, inclusive na imagem
+Docker), `docker` (ativado pelo `docker-compose.yml` → Postgres no serviço `db`), `test` (H2 em memória).
+
+**Health check:** `/actuator/health/liveness` (não consulta o banco — use para keep-alive e
+health check do host) e `/actuator/health/readiness` (inclui o banco). Deploy: ver
+[`docs/deploy.md`](../docs/deploy.md).
 
 ---
 
@@ -189,10 +194,13 @@ não configurado, o GET retorna `404` (o front trata a ausência). O `PUT` faz *
 vazia se não configurado). O `PUT` faz *upsert* da lista inteira e reordena.
 
 **Upload de arquivos:** `POST /api/admin/uploads` recebe `multipart/form-data` com o campo
-`file` e grava o binário em disco, **escopado por tenant** (`{app.uploads.dir}/{tenant}/{uuid}.ext`).
+`file` e grava o binário **no banco** (tabela `uploaded_file`, coluna `bytea`), escopado por tenant.
+Fica no banco porque hosts gratuitos têm disco efêmero; uploads antigos (anteriores à migration V9,
+gravados em `{app.uploads.dir}/{tenant}/`) continuam sendo lidos do disco se existirem.
 Tipos aceitos: PNG, JPG, WEBP, GIF, SVG e PDF; tamanho máximo **5 MB** (ajustável via
 `APP_UPLOADS_MAX_FILE_SIZE_BYTES` e `spring.servlet.multipart.max-file-size`). A resposta traz a
-`url` pública (ex.: `/uploads/apiuna/ab12...png`), servida estaticamente em `/uploads/**`. Essa URL
+`url` pública (ex.: `/uploads/apiuna/ab12...png`), servida em `/uploads/**` com cache longo
+(nome é UUID, conteúdo imutável). Essa URL
 é o que as telas gravam nos campos de imagem/arquivo (logo, hero, foto de pessoa, documento). Erros:
 `400` tipo não suportado/arquivo vazio · `413` acima do tamanho máximo · `401` sem token.
 
