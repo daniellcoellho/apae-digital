@@ -20,45 +20,34 @@ import { CountUp } from '@/components/common/CountUp'
 import { ContentIcon } from '@/components/common/Icon'
 import { NEWS_CATEGORIES } from '@/features/news/categories'
 import { EVENT_CATEGORIES } from '@/features/events/categories'
-import type { CalendarEvent, NewsCategory } from '@/types'
+import type { CalendarEvent, NewsArticle, NewsCategory } from '@/types'
+import { useNewsList } from '@/features/news/useNewsList'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { getDefaultDonation, getDefaultHomeContent } from '@/content/home'
 import type { ServicosContent } from '@/content/servicos/types'
 import { tenantService } from '@/services/tenantService'
 import { eventService } from '@/services/eventService'
 
-// ---- Dados fixos das secoes ainda nao editaveis (noticias/agenda/servicos/doacao) ----
+// ---- Dados fixos das secoes ainda nao editaveis (agenda/servicos/doacao) ----
 
-const featuredNews = {
-  tag: 'CAMPANHAS',
-  date: '22 de agosto de 2026',
-  title: 'Campanha do agasalho arrecada mais de 1.200 peças',
-  summary:
-    'Com apoio de escolas e comércio local, as doações foram distribuídas para as famílias atendidas pela instituição.',
-  slug: 'campanha-do-agasalho',
-  image:
-    'https://images.unsplash.com/photo-1649887221640-481c952df72e?auto=format&fit=crop&w=800&q=60',
+/** Converte uma noticia da API para o formato dos cards da home. */
+function toNewsCard(n: NewsArticle) {
+  return {
+    tag: n.category,
+    date: n.publishedAt
+      ? format(new Date(n.publishedAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+      : '',
+    title: n.title,
+    summary: n.summary,
+    slug: n.slug,
+    image: n.coverImageUrl,
+  }
 }
 
-const sideNews = [
-  {
-    tag: 'ESTRUTURA',
-    date: '14 de agosto de 2026',
-    title: 'Nova sala de fisioterapia é entregue à comunidade',
-    summary: 'Espaço ampliado permite 40 novos atendimentos por semana.',
-    slug: 'nova-sala-de-fisioterapia',
-    image:
-      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=400&q=60',
-  },
-  {
-    tag: 'PROJETOS',
-    date: '02 de agosto de 2026',
-    title: 'Oficina de música estreia turma para adolescentes',
-    summary: 'Projeto usa arte como caminho para autonomia e convivência.',
-    slug: 'oficina-de-musica',
-    image:
-      'https://images.unsplash.com/photo-1711048421235-3fcb9dcf82f7?auto=format&fit=crop&w=400&q=60',
-  },
-]
+function categoryOf(tag: NewsCategory) {
+  return NEWS_CATEGORIES[tag] ?? { label: tag, tag: 'bg-surface-alt text-ink' }
+}
 
 const MONTHS_PT = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
 
@@ -96,6 +85,8 @@ export function HomePage() {
   const [home, setHome] = useState(() => getDefaultHomeContent(theme.tenant))
   const [servicesContent, setServicesContent] = useState<ServicosContent | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const { articles, loading: newsLoading } = useNewsList()
+  const [featuredNews, ...sideNews] = articles.slice(0, 3).map(toNewsCard)
 
   useEffect(() => {
     let active = true
@@ -223,20 +214,25 @@ export function HomePage() {
             <Link href="/noticias" className="btn-outline">Todas as notícias →</Link>
           </div>
 
+          {newsLoading ? (
+            <p className="mt-10 text-ink-muted">Carregando notícias…</p>
+          ) : !featuredNews ? (
+            <p className="mt-10 text-ink-muted">Nenhuma notícia publicada ainda.</p>
+          ) : (
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             {/* Destaque */}
             <Link href={`/noticias/${featuredNews.slug}`} className="card group overflow-hidden">
-              <div className="aspect-video overflow-hidden">
-                <img
+              <div className="aspect-video overflow-hidden bg-surface-alt">
+                {featuredNews.image && <img
                   src={featuredNews.image}
                   alt=""
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                />}
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${NEWS_CATEGORIES[featuredNews.tag as NewsCategory].tag}`}>
-                    {NEWS_CATEGORIES[featuredNews.tag as NewsCategory].label}
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${categoryOf(featuredNews.tag).tag}`}>
+                    {categoryOf(featuredNews.tag).label}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm text-ink-muted">
                     <Calendar className="h-3.5 w-3.5" aria-hidden />
@@ -253,17 +249,17 @@ export function HomePage() {
             <div className="flex flex-col gap-6">
               {sideNews.map((n) => (
                 <Link key={n.slug} href={`/noticias/${n.slug}`} className="card group flex overflow-hidden">
-                  <div className="aspect-square w-32 shrink-0 overflow-hidden sm:w-40">
-                    <img
+                  <div className="aspect-square w-32 shrink-0 overflow-hidden bg-surface-alt sm:w-40">
+                    {n.image && <img
                       src={n.image}
                       alt=""
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                    />}
                   </div>
                   <div className="p-5">
                     <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${NEWS_CATEGORIES[n.tag as NewsCategory].tag}`}>
-                        {NEWS_CATEGORIES[n.tag as NewsCategory].label}
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${categoryOf(n.tag).tag}`}>
+                        {categoryOf(n.tag).label}
                       </span>
                       <span className="text-xs text-ink-muted">{n.date}</span>
                     </div>
@@ -274,6 +270,7 @@ export function HomePage() {
               ))}
             </div>
           </div>
+          )}
         </div>
       </section>
 
